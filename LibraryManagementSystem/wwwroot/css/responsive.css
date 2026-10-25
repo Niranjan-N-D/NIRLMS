@@ -1,0 +1,87 @@
+/* ═══════════════════════════════════════════════════════════════
+   RESPONSIVE DESIGN — Tablet & Mobile Breakpoints
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Tablet (≤ 1024px) ─────────────────────────────────────────── */
+@media (max-width: 1024px) {
+    .stats-grid { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
+    .dashboard-grid { grid-template-columns: 1fr; }
+}
+
+/* ── Small Tablet / Large Mobile (≤ 768px) ─────────────────────── */
+@media (max-width: 768px) {
+    .sidebar {
+        transform: translateX(-100%);
+        width: 280px;
+    }
+    .sidebar.open { transform: translateX(0); }
+
+    .main-content { margin-left: 0; }
+
+    .hamburger { display: flex; }
+
+    .sidebar-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.5);
+        z-index: 999;
+        opacity: 0;
+        visibility: hidden;
+        transition: all var(--transition);
+    }
+    .sidebar-overlay.show { opacity: 1; visibility: visible; }
+
+    .page-content { padding: 16px; }
+
+    .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .stat-card { padding: 14px; }
+    .stat-card .stat-value { font-size: 1.2rem; }
+
+    .quick-actions { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .quick-action-btn { padding: 14px 8px; }
+
+    .search-bar { flex-direction: column; }
+
+    .form-grid { grid-template-columns: 1fr; }
+
+    .page-header { flex-direction: column; align-items: flex-start; }
+
+    .top-navbar { padding: 0 16px; }
+    .top-navbar .user-info { display: none; }
+
+    .borrowing-cards { grid-template-columns: 1fr; }
+
+    /* Responsive tables */
+    .data-table { font-size: 0.78rem; }
+    .data-table th, .data-table td { padding: 8px 10px; }
+}
+
+/* ── Mobile (≤ 480px) ──────────────────────────────────────────── */
+@media (max-width: 480px) {
+    html { font-size: 14px; }
+
+    .stats-grid { grid-template-columns: 1fr 1fr; }
+
+    .quick-actions { grid-template-columns: repeat(2, 1fr); }
+
+    .login-card { border-radius: var(--border-radius); }
+    .login-header { padding: 24px 20px 18px; }
+    .login-body { padding: 20px; }
+
+    .form-card .card-body { padding: 16px; }
+
+    .modal-dialog { width: 95%; }
+
+    .btn-lg { padding: 10px 20px; font-size: 0.9rem; }
+
+    .navbar-left h1 { font-size: 1rem; }
+}
+
+/* ── Print ─────────────────────────────────────────────────────── */
+@media print {
+    .sidebar, .top-navbar, .toast-container, .quick-actions,
+    .hamburger, .form-actions, .btn { display: none !important; }
+    .main-content { margin-left: 0; }
+    .page-content { padding: 0; }
+    .card { box-shadow: none; border: 1px solid #ccc; }
+}

@@ -1,0 +1,25 @@
+## Ignore Visual Studio / .NET build artifacts
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+.vs/
+.idea/
+.vscode/
+
+## User-specific files
+*.rsuser
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+## Database & Local Storage
+*.db
+*.db-shm
+*.db-wal
+library.db
+
+## OS generated files
+.DS_Store
+Thumbs.db
