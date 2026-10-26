@@ -423,6 +423,9 @@ Sub RenderHeader(pageTitle)
                         <a href="analytics.asp" class="nav-link nav-analytics <%= NavActive("analytics.asp", currentScript) %>" style="<%= IIf(NavActive("analytics.asp", currentScript)="active", "", "color:#2ecc71; font-weight:600;") %>">
                             <span>📊</span> Analytics
                         </a>
+                        <a href="users.asp" class="nav-link <%= NavActive("users.asp", currentScript) %>">
+                            <span>👥</span> Users
+                        </a>
                         <span class="nav-divider"></span>
                     <% End If %>
 
