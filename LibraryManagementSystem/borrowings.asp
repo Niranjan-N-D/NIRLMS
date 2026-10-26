@@ -6,7 +6,7 @@ Dim conn, errorMessage, successMessage
 Dim actionType, bookId, userId, days, todayStr, dueStr, insertSql, borrowId, retDateStr, currentFilter
 Dim rsBooks, rsUsers, rsList, sqlList, currentUserId
 Dim bStatus, bBorrowDate, bDueDate, bReturnDate, isOverdueRed, rowStyle, fmtBorrowDate, fmtDueDate, fmtReturnDate, rowStatusType
-Dim bAuthor, bCopies, uName, uEmail, uInternalNo, uRole
+Dim bAuthor, bCopies, uName, uEmail, uStaffNo, uInternalNo, uRole
 
 
 errorMessage = ""
