@@ -22,14 +22,14 @@ The system features **3-Role Access Control (RBAC)**, custom **Book Requests wit
 
 ---
 
-## 🔐 Default Test Credentials
+## 🔐 Default Credentials (Login with Staff No. & Date of Birth)
 
-| Role | Username | Email | Password | Access Rights |
-| :--- | :--- | :--- | :--- | :--- |
-| **Admin** | Admin User | `admin@bel.com` | `Password123!` | Full System Control (Metrics, Books Add/Edit/Delete, Requests, Authors, Categories) |
-| **Librarian** | Librarian Sarah | `librarian@bel.com` | `Password123!` | Operational Staff (Metrics, Books Add/Edit, Request Approvals/Rejections, Authors, Categories) |
-| **Member** | John Doe | `john.doe@bel.com` | `Password123!` | Member View (Personal Dashboard, Book Requesting, Personal History) |
-| **Member** | Jane Smith | `jane.smith@bel.com` | `Password123!` | Member View (Personal Dashboard, Book Requesting, Personal History) |
+| Role | Name | Staff Number | Internal ID | Password (DOB) | Access Rights |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Admin** | Admin User | `9876543210` | `BEL-ADM-001` | `15-08-1985` | Full System Control (Metrics, Books Add/Edit/Delete, Requests, Authors, Categories, Permissions) |
+| **Librarian** | Librarian Sarah | `9876543211` | `BEL-LIB-002` | `20-05-1992` | Operational Staff (Metrics, Books Add/Edit, Request Approvals/Rejections, Authors, Categories) |
+| **Staff** | Rajesh Kumar | `9876543212` | `BEL-ENG-201` | `10-10-1995` | Staff View (Personal Dashboard, Book Requesting, Personal History, Reviews) |
+| **Staff** | Priya Sharma | `9876543213` | `BEL-ENG-202` | `12-12-1996` | Staff View (Personal Dashboard, Book Requesting, Personal History, Reviews) |
 
 ---
 

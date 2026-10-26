@@ -1,7 +1,7 @@
 <!--#include file="includes/db_config.asp"-->
 <%
 ' ====================================================================
-' Login Module (.asp VBScript Backend)
+' Login Module (.asp VBScript Backend) - Staff Number & DOB Authentication
 ' ====================================================================
 Dim errorMessage, msg
 errorMessage = ""
@@ -9,17 +9,18 @@ msg = Request.QueryString("msg")
 
 ' Handle Form Submission (POST)
 If Request.ServerVariables("REQUEST_METHOD") = "POST" Then
-    Dim email, password
-    email = Trim(Request.Form("email"))
+    Dim staffNumber, password
+    staffNumber = Trim(Request.Form("staff_number"))
+    If staffNumber = "" Then staffNumber = Trim(Request.Form("email"))
     password = Trim(Request.Form("password"))
 
-    If email = "" Or password = "" Then
-        errorMessage = "Email and Password are required."
+    If staffNumber = "" Or password = "" Then
+        errorMessage = "Staff Number and Date of Birth (DOB) are required."
     Else
         Dim conn, rs, sql
         Set conn = GetConnection()
 
-        sql = "SELECT id, email, username, role, password_hash, dob, perm_books, perm_requests, perm_borrowings, perm_authors, perm_categories, perm_feedback FROM Users WHERE email = " & SQLQuote(email)
+        sql = "SELECT id, email, username, role, staff_number, staff_internal_number, password_hash, dob, perm_books, perm_requests, perm_borrowings, perm_authors, perm_categories, perm_feedback FROM Users WHERE staff_number = " & SQLQuote(staffNumber) & " OR staff_internal_number = " & SQLQuote(staffNumber) & " OR email = " & SQLQuote(staffNumber)
         Set rs = Server.CreateObject("ADODB.Recordset")
         
         On Error Resume Next
@@ -27,7 +28,7 @@ If Request.ServerVariables("REQUEST_METHOD") = "POST" Then
 
         If Err.Number <> 0 Then
             ' Fallback for default admin testing (DOB: 15-08-1985 or Password123!)
-            If email = "admin@bel.com" And (password = "15-08-1985" Or password = "15081985" Or password = "Password123!") Then
+            If (staffNumber = "9876543210" Or staffNumber = "BEL-ADM-001" Or staffNumber = "admin@bel.com") And (password = "15-08-1985" Or password = "15081985" Or password = "Password123!") Then
                 Session("UserId") = 1
                 Session("Username") = "Admin User"
                 Session("Role") = "Admin"
@@ -65,6 +66,8 @@ If Request.ServerVariables("REQUEST_METHOD") = "POST" Then
                 Session("UserId") = rs("id")
                 Session("Username") = rs("username")
                 Session("Role") = rs("role")
+                Session("StaffNumber") = rs("staff_number")
+                Session("StaffInternalNumber") = rs("staff_internal_number")
                 
                 ' Load User Feature Permissions into Session
                 On Error Resume Next
@@ -84,14 +87,14 @@ If Request.ServerVariables("REQUEST_METHOD") = "POST" Then
                 Response.Redirect("dashboard.asp")
                 Response.End
             Else
-                errorMessage = "Invalid email or Date of Birth (Password)."
+                errorMessage = "Invalid Staff Number or Date of Birth (DOB)."
                 rs.Close
                 conn.Close
                 Set rs = Nothing
                 Set conn = Nothing
             End If
         Else
-            errorMessage = "Invalid email or Date of Birth (Password)."
+            errorMessage = "Invalid Staff Number or Date of Birth (DOB)."
             rs.Close
             conn.Close
             Set rs = Nothing
@@ -104,9 +107,9 @@ End If
 RenderHeader "Login"
 %>
 
-<div style="max-width: 500px; margin: 40px auto;" class="card">
+<div style="max-width: 520px; margin: 35px auto;" class="card">
     <h2 style="margin-top:0; text-align: center; color:#2c3e50;">Sign In</h2>
-    <p style="text-align: center; color:#7f8c8d; margin-top:-6px;">BEL Library System &bull; Multi-Role Access</p>
+    <p style="text-align: center; color:#7f8c8d; margin-top:-6px;">BEL Library System &bull; Staff Number & Date of Birth</p>
 
     <% If msg <> "" Then %>
         <div class="alert alert-info"><%= Server.HTMLEncode(msg) %></div>
@@ -118,8 +121,11 @@ RenderHeader "Login"
 
     <form action="login.asp" method="POST">
         <div class="form-group">
-            <label for="email">Email Address</label>
-            <input type="email" id="email" name="email" placeholder="user@bel.com" required>
+            <label for="staff_number">Staff Number / Employee ID</label>
+            <input type="text" id="staff_number" name="staff_number" placeholder="e.g. 9876543210 or BEL-ADM-001" required autofocus>
+            <small style="color:#7f8c8d; font-size:12px; display:block; margin-top:4px;">
+                Enter your 10-digit Staff Number or BEL Internal Employee ID.
+            </small>
         </div>
 
         <div class="form-group">
@@ -130,27 +136,31 @@ RenderHeader "Login"
             </small>
         </div>
 
-        <button type="submit" class="btn btn-primary" style="width:100%; padding:10px; font-weight:600; font-size:14px;">Sign In</button>
+        <button type="submit" class="btn btn-primary" style="width:100%; padding:10px; font-weight:600; font-size:15px;">Sign In</button>
     </form>
     
     <div style="margin-top:24px; padding-top:16px; border-top:1px solid #eee; font-size:12.5px; color:#555;">
-        <strong style="color:#2c3e50;">🔐 Available Accounts (Password is Date of Birth):</strong>
+        <strong style="color:#2c3e50;">🔐 Registered Accounts (Login: Staff No. & DOB):</strong>
         <div style="margin-top:10px; display:flex; flex-direction:column; gap:6px;">
-            <div style="display:flex; justify-content:space-between; background:#f8f9fa; padding:6px 10px; border-radius:4px;">
-                <span><strong>Admin:</strong> <code>admin@bel.com</code></span>
+            <div style="display:flex; justify-content:space-between; align-items:center; background:#f8f9fa; padding:7px 10px; border-radius:4px;">
+                <span><strong>Admin:</strong> <code>9876543210</code> <span style="color:#888;">(BEL-ADM-001)</span></span>
                 <span>DOB: <code style="color:#2980b9; font-weight:bold;">15-08-1985</code></span>
             </div>
-            <div style="display:flex; justify-content:space-between; background:#f8f9fa; padding:6px 10px; border-radius:4px;">
-                <span><strong>Librarian:</strong> <code>librarian@bel.com</code></span>
+            <div style="display:flex; justify-content:space-between; align-items:center; background:#f8f9fa; padding:7px 10px; border-radius:4px;">
+                <span><strong>Librarian:</strong> <code>9876543211</code> <span style="color:#888;">(BEL-LIB-002)</span></span>
                 <span>DOB: <code style="color:#2980b9; font-weight:bold;">20-05-1992</code></span>
             </div>
-            <div style="display:flex; justify-content:space-between; background:#f8f9fa; padding:6px 10px; border-radius:4px;">
-                <span><strong>Staff:</strong> <code>rajesh.k@bel.com</code></span>
+            <div style="display:flex; justify-content:space-between; align-items:center; background:#f8f9fa; padding:7px 10px; border-radius:4px;">
+                <span><strong>Staff (Rajesh):</strong> <code>9876543212</code> <span style="color:#888;">(BEL-ENG-201)</span></span>
                 <span>DOB: <code style="color:#2980b9; font-weight:bold;">10-10-1995</code></span>
             </div>
-            <div style="display:flex; justify-content:space-between; background:#f8f9fa; padding:6px 10px; border-radius:4px;">
-                <span><strong>Staff:</strong> <code>priya.s@bel.com</code></span>
+            <div style="display:flex; justify-content:space-between; align-items:center; background:#f8f9fa; padding:7px 10px; border-radius:4px;">
+                <span><strong>Staff (Priya):</strong> <code>9876543213</code> <span style="color:#888;">(BEL-ENG-202)</span></span>
                 <span>DOB: <code style="color:#2980b9; font-weight:bold;">12-12-1996</code></span>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; background:#f8f9fa; padding:7px 10px; border-radius:4px;">
+                <span><strong>Staff (Ramesh):</strong> <code>9876543214</code> <span style="color:#888;">(BEL-RAD-301)</span></span>
+                <span>DOB: <code style="color:#2980b9; font-weight:bold;">04-07-1993</code></span>
             </div>
         </div>
     </div>
