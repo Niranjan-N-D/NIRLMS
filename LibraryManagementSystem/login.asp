@@ -121,10 +121,10 @@ RenderHeader "Login"
 
     <form action="login.asp" method="POST">
         <div class="form-group">
-            <label for="staff_number">Staff Number / Employee ID</label>
-            <input type="text" id="staff_number" name="staff_number" placeholder="e.g. 9876543210 or BEL-ADM-001" required autofocus>
+            <label for="staff_number">Staff Number</label>
+            <input type="text" id="staff_number" name="staff_number" placeholder="Enter Staff Number (e.g. 9876543210)" required autofocus>
             <small style="color:#7f8c8d; font-size:12px; display:block; margin-top:4px;">
-                Enter your 10-digit Staff Number or BEL Internal Employee ID.
+                Enter your 10-digit Staff Number.
             </small>
         </div>
 
@@ -143,23 +143,23 @@ RenderHeader "Login"
         <strong style="color:#2c3e50;">🔐 Registered Accounts (Login: Staff No. & DOB):</strong>
         <div style="margin-top:10px; display:flex; flex-direction:column; gap:6px;">
             <div style="display:flex; justify-content:space-between; align-items:center; background:#f8f9fa; padding:7px 10px; border-radius:4px;">
-                <span><strong>Admin:</strong> <code>9876543210</code> <span style="color:#888;">(BEL-ADM-001)</span></span>
+                <span><strong>Admin:</strong> <code>9876543210</code></span>
                 <span>DOB: <code style="color:#2980b9; font-weight:bold;">15-08-1985</code></span>
             </div>
             <div style="display:flex; justify-content:space-between; align-items:center; background:#f8f9fa; padding:7px 10px; border-radius:4px;">
-                <span><strong>Librarian:</strong> <code>9876543211</code> <span style="color:#888;">(BEL-LIB-002)</span></span>
+                <span><strong>Librarian:</strong> <code>9876543211</code></span>
                 <span>DOB: <code style="color:#2980b9; font-weight:bold;">20-05-1992</code></span>
             </div>
             <div style="display:flex; justify-content:space-between; align-items:center; background:#f8f9fa; padding:7px 10px; border-radius:4px;">
-                <span><strong>Staff (Rajesh):</strong> <code>9876543212</code> <span style="color:#888;">(BEL-ENG-201)</span></span>
+                <span><strong>Staff (Rajesh):</strong> <code>9876543212</code></span>
                 <span>DOB: <code style="color:#2980b9; font-weight:bold;">10-10-1995</code></span>
             </div>
             <div style="display:flex; justify-content:space-between; align-items:center; background:#f8f9fa; padding:7px 10px; border-radius:4px;">
-                <span><strong>Staff (Priya):</strong> <code>9876543213</code> <span style="color:#888;">(BEL-ENG-202)</span></span>
+                <span><strong>Staff (Priya):</strong> <code>9876543213</code></span>
                 <span>DOB: <code style="color:#2980b9; font-weight:bold;">12-12-1996</code></span>
             </div>
             <div style="display:flex; justify-content:space-between; align-items:center; background:#f8f9fa; padding:7px 10px; border-radius:4px;">
-                <span><strong>Staff (Ramesh):</strong> <code>9876543214</code> <span style="color:#888;">(BEL-RAD-301)</span></span>
+                <span><strong>Staff (Ramesh):</strong> <code>9876543214</code></span>
                 <span>DOB: <code style="color:#2980b9; font-weight:bold;">04-07-1993</code></span>
             </div>
         </div>

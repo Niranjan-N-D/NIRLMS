@@ -85,7 +85,7 @@ Set rsTopBooks = conn.Execute("SELECT b.id, b.title, b.price, a.name AS author_n
 ' 4. Overdue Borrowings Detailed Log
 ' --------------------------------------------------------------------
 Dim rsOverdueLog
-Set rsOverdueLog = conn.Execute("SELECT b.id, bk.title, u.username, u.staff_number, u.staff_internal_number, " & _
+Set rsOverdueLog = conn.Execute("SELECT b.id, bk.title, u.username, u.staff_number, " & _
                                "b.borrow_date, b.due_date, DATEDIFF(CURRENT_DATE(), b.due_date) AS days_late " & _
                                "FROM Borrowings b " & _
                                "JOIN Books bk ON b.book_id = bk.id " & _
@@ -97,12 +97,12 @@ Set rsOverdueLog = conn.Execute("SELECT b.id, bk.title, u.username, u.staff_numb
 ' 5. Top Staff Readers
 ' --------------------------------------------------------------------
 Dim rsTopBorrowers
-Set rsTopBorrowers = conn.Execute("SELECT u.id, u.username, u.role, u.staff_internal_number, " & _
+Set rsTopBorrowers = conn.Execute("SELECT u.id, u.username, u.role, u.staff_number, " & _
                                  "COUNT(CASE WHEN b.status IN ('Borrowed', 'Overdue') THEN 1 END) AS current_held, " & _
                                  "COUNT(CASE WHEN b.status = 'Returned' THEN 1 END) AS total_returned " & _
                                  "FROM Users u " & _
                                  "JOIN Borrowings b ON u.id = b.user_id " & _
-                                 "GROUP BY u.id, u.username, u.role, u.staff_internal_number " & _
+                                 "GROUP BY u.id, u.username, u.role, u.staff_number " & _
                                  "ORDER BY current_held DESC, total_returned DESC LIMIT 5")
 
 On Error GoTo 0
@@ -268,7 +268,7 @@ RenderHeader "Library Analytics & Inventory Intelligence"
                 <th>#ID</th>
                 <th>Overdue Book Title</th>
                 <th>Borrower (Staff)</th>
-                <th>Staff ID / Internal Ext</th>
+                <th>Staff Number</th>
                 <th>Borrowed On</th>
                 <th>Due Date (Day 15)</th>
                 <th>Days Late</th>
@@ -283,7 +283,7 @@ RenderHeader "Library Analytics & Inventory Intelligence"
                 <td>#<%= rsOverdueLog("id") %></td>
                 <td><strong style="color:#c0392b;"><%= CleanText(rsOverdueLog("title") & "") %></strong></td>
                 <td><strong><%= CleanText(rsOverdueLog("username") & "") %></strong></td>
-                <td><code><%= CleanText(rsOverdueLog("staff_internal_number") & "") %></code></td>
+                <td><code><%= CleanText(rsOverdueLog("staff_number") & "") %></code></td>
                 <td><%= FormatDateTime(rsOverdueLog("borrow_date"), 2) %></td>
                 <td><strong style="color:#e74c3c;"><%= FormatDateTime(rsOverdueLog("due_date"), 2) %></strong></td>
                 <td><span class="badge bg-danger">+<%= rsOverdueLog("days_late") %> Days Late</span></td>
@@ -410,7 +410,7 @@ RenderHeader "Library Analytics & Inventory Intelligence"
             <tr>
                 <th>Member Name</th>
                 <th>Role</th>
-                <th>Internal Extension</th>
+                <th>Staff Number</th>
                 <th>Currently Holding</th>
                 <th>Successfully Returned</th>
                 <th>Reading Status</th>
@@ -426,7 +426,7 @@ RenderHeader "Library Analytics & Inventory Intelligence"
             <tr>
                 <td><strong><%= CleanText(rsTopBorrowers("username") & "") %></strong></td>
                 <td><span class="badge" style="background:#34495e;"><%= CleanText(rsTopBorrowers("role") & "") %></span></td>
-                <td><code><%= CleanText(rsTopBorrowers("staff_internal_number") & "") %></code></td>
+                <td><code><%= CleanText(rsTopBorrowers("staff_number") & "") %></code></td>
                 <td>
                     <% If curHeld > 0 Then %>
                         <span class="badge bg-warning"><%= curHeld %> Active</span>

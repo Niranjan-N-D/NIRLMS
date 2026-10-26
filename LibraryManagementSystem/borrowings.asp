@@ -80,7 +80,7 @@ End If
 ' Fetch Available Books & Users for Select Dropdowns (Staff view)
 If IsStaff() Then
     Set rsBooks = conn.Execute("SELECT b.id, b.title, b.isbn, b.copies_available, COALESCE(a.name, 'Various') AS author_name FROM Books b LEFT JOIN Authors a ON b.author_id = a.id WHERE b.copies_available > 0 ORDER BY b.title ASC")
-    Set rsUsers = conn.Execute("SELECT id, username, email, COALESCE(staff_internal_number, 'BEL-STAFF') AS staff_internal_number, role FROM Users ORDER BY username ASC")
+    Set rsUsers = conn.Execute("SELECT id, username, email, COALESCE(staff_number, '') AS staff_number, role FROM Users ORDER BY username ASC")
 End If
 
 ' Fetch Borrowing Records List
@@ -307,16 +307,16 @@ RenderHeader IIf(IsStaff(), "Book Borrowing Management", "My Borrowed Books")
                             Do While Not rsUsers.EOF
                                 uName = CleanText(rsUsers("username") & "")
                                 uEmail = CleanText(rsUsers("email") & "")
-                                uInternalNo = CleanText(rsUsers("staff_internal_number") & "")
+                                uStaffNo = CleanText(rsUsers("staff_number") & "")
                                 uRole = CleanText(rsUsers("role") & "")
                         %>
                             <div class="searchable-item" 
                                  data-id="<%= rsUsers("id") %>" 
                                  data-title="<%= uName %>" 
-                                 data-search="<%= LCase(uName & " " & uEmail & " " & uInternalNo & " " & uRole) %>">
+                                 data-search="<%= LCase(uName & " " & uEmail & " " & uStaffNo & " " & uRole) %>">
                                 <div>
                                     <div class="searchable-item-primary"><%= uName %></div>
-                                    <div class="searchable-item-sub"><%= uEmail %> &bull; <%= uInternalNo %></div>
+                                    <div class="searchable-item-sub"><%= uEmail %> &bull; Staff No: <%= uStaffNo %></div>
                                 </div>
                                 <span class="searchable-item-badge badge-staff"><%= uRole %></span>
                             </div>

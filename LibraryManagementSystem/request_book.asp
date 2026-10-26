@@ -13,26 +13,23 @@ Dim currentUserId, currentStaffName, currentStaffNumber, currentStaffInternalNum
 currentUserId = SafeInt(Session("UserId"), 0)
 
 Dim rsUser
-Set rsUser = conn.Execute("SELECT username, staff_number, staff_internal_number FROM Users WHERE id = " & currentUserId)
+Set rsUser = conn.Execute("SELECT username, staff_number FROM Users WHERE id = " & currentUserId)
 If Not (rsUser Is Nothing Or rsUser.EOF) Then
     currentStaffName = rsUser("username") & ""
     currentStaffNumber = rsUser("staff_number") & ""
-    currentStaffInternalNum = rsUser("staff_internal_number") & ""
 Else
     currentStaffName = Session("Username") & ""
     currentStaffNumber = "9876543210"
-    currentStaffInternalNum = "BEL-EXT-101"
 End If
 
 ' Form Submission (POST)
 If Request.ServerVariables("REQUEST_METHOD") = "POST" Then
     bookId = SafeInt(Request.Form("book_id"), 0)
-    Dim staffName, staffNumber, staffInternalNum, bookName, authorName, bookPrice
+    Dim staffName, staffNumber, bookName, authorName, bookPrice
     Dim startDateStr, endDateStr
 
     staffName = Trim(Request.Form("staff_name"))
     staffNumber = Trim(Request.Form("staff_number"))
-    staffInternalNum = Trim(Request.Form("staff_internal_number"))
     startDateStr = Trim(Request.Form("start_date"))
     endDateStr = Trim(Request.Form("end_date"))
 
@@ -59,12 +56,11 @@ If Request.ServerVariables("REQUEST_METHOD") = "POST" Then
         End If
 
         Dim insertSql
-        insertSql = "INSERT INTO BookRequests (book_id, user_id, staff_name, staff_number, staff_internal_number, book_name, author_name, price, start_date, end_date, status) VALUES (" & _
+        insertSql = "INSERT INTO BookRequests (book_id, user_id, staff_name, staff_number, book_name, author_name, price, start_date, end_date, status) VALUES (" & _
                     bookId & ", " & _
                     currentUserId & ", " & _
                     SQLQuote(staffName) & ", " & _
                     SQLQuote(staffNumber) & ", " & _
-                    SQLQuote(staffInternalNum) & ", " & _
                     SQLQuote(bookName) & ", " & _
                     SQLQuote(authorName) & ", " & _
                     bookPrice & ", " & _
@@ -110,18 +106,14 @@ RenderHeader "Request Book"
         <!-- 1. Staff Metadata Fields -->
         <div style="background:#eef2f7; padding:15px; border-radius:6px; margin-bottom:15px;">
             <h4 style="margin-top:0; margin-bottom:10px; color:#34495e;">Staff Details</h4>
-            <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px;">
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
                 <div class="form-group" style="margin-bottom:0;">
                     <label for="staff_name" style="font-size:12px;">Staff Name *</label>
                     <input type="text" id="staff_name" name="staff_name" value="<%= CleanText(currentStaffName) %>" required style="padding:6px 10px;">
                 </div>
                 <div class="form-group" style="margin-bottom:0;">
-                    <label for="staff_number" style="font-size:12px;">Staff Number (Phone) *</label>
+                    <label for="staff_number" style="font-size:12px;">Staff Number *</label>
                     <input type="text" id="staff_number" name="staff_number" value="<%= CleanText(currentStaffNumber) %>" required style="padding:6px 10px;">
-                </div>
-                <div class="form-group" style="margin-bottom:0;">
-                    <label for="staff_internal_number" style="font-size:12px;">Staff Internal Ext No. *</label>
-                    <input type="text" id="staff_internal_number" name="staff_internal_number" value="<%= CleanText(currentStaffInternalNum) %>" required style="padding:6px 10px;">
                 </div>
             </div>
         </div>

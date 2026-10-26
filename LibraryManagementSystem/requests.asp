@@ -153,8 +153,7 @@ RenderHeader IIf(IsStaff(), "Book Requests Approval", "My Book Requests")
             <tr>
                 <th>Req / Book ID</th>
                 <th>Staff Name</th>
-                <th>Staff Phone</th>
-                <th>Internal Ext No.</th>
+                <th>Staff Number</th>
                 <th>Book Title</th>
                 <th>Author</th>
                 <th>Price (&#8377;)</th>
@@ -170,7 +169,7 @@ RenderHeader IIf(IsStaff(), "Book Requests Approval", "My Book Requests")
             If rsList Is Nothing Or rsList.State = 0 Or rsList.EOF Then
             %>
                 <tr>
-                    <td colspan="<%= IIf(IsStaff(), 10, 9) %>" style="text-align:center; color:#95a5a6; padding:20px;">No book requests found.</td>
+                    <td colspan="<%= IIf(IsStaff(), 9, 8) %>" style="text-align:center; color:#95a5a6; padding:20px;">No book requests found.</td>
                 </tr>
             <%
             Else
@@ -192,7 +191,6 @@ RenderHeader IIf(IsStaff(), "Book Requests Approval", "My Book Requests")
                     </td>
                     <td><strong><%= CleanText(rsList("staff_name") & "") %></strong></td>
                     <td><code><%= CleanText(rsList("staff_number") & "") %></code></td>
-                    <td><span class="badge bg-secondary" style="background:#6c757d;"><%= CleanText(rsList("staff_internal_number") & "") %></span></td>
                     <td><strong style="color:#16a085; font-size:14px;"><%= CleanText(rsList("book_name") & "") %></strong></td>
                     <td><%= CleanText(rsList("author_name") & "") %></td>
                     <td><strong style="color:#27ae60;">&#8377;<%= FormatNumber(SafeFloat(rsList("price"), 0), 2) %></strong></td>

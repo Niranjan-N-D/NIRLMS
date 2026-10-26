@@ -22,10 +22,9 @@ If Request.ServerVariables("REQUEST_METHOD") = "POST" Then
     actionType = Request.Form("action_type")
 
     If actionType = "add" Then
-        Dim username, staffNumber, staffInternalNumber, dob, email, role
+        Dim username, staffNumber, dob, email, role
         username = Trim(Request.Form("username"))
         staffNumber = Trim(Request.Form("staff_number"))
-        staffInternalNumber = Trim(Request.Form("staff_internal_number"))
         dob = Trim(Request.Form("dob"))
         email = Trim(Request.Form("email"))
         role = Trim(Request.Form("role"))
@@ -76,16 +75,11 @@ If Request.ServerVariables("REQUEST_METHOD") = "POST" Then
                     pFeedback = 1
                 End If
 
-                If staffInternalNumber = "" Then
-                    staffInternalNumber = "BEL-STF-" & Right("000" & Int(Rnd() * 899 + 100), 3)
-                End If
-
                 On Error Resume Next
                 Dim insertSql
-                insertSql = "INSERT INTO Users (username, staff_number, staff_internal_number, dob, email, password_hash, role, perm_books, perm_requests, perm_borrowings, perm_authors, perm_categories, perm_feedback) VALUES (" & _
+                insertSql = "INSERT INTO Users (username, staff_number, dob, email, password_hash, role, perm_books, perm_requests, perm_borrowings, perm_authors, perm_categories, perm_feedback) VALUES (" & _
                     SQLQuote(username) & ", " & _
                     SQLQuote(staffNumber) & ", " & _
-                    SQLQuote(staffInternalNumber) & ", " & _
                     SQLQuote(dob) & ", " & _
                     SQLQuote(email) & ", " & _
                     SQLQuote(dob) & ", " & _
@@ -210,14 +204,6 @@ RenderHeader "Staff & User Management"
             </div>
 
             <div class="form-group">
-                <label for="staff_internal_number">Internal Employee ID</label>
-                <input type="text" id="staff_internal_number" name="staff_internal_number" placeholder="e.g. BEL-ENG-203">
-                <small style="color:#7f8c8d; font-size:11.5px; display:block; margin-top:3px;">
-                    Optional department ID (e.g. BEL-RAD-302).
-                </small>
-            </div>
-
-            <div class="form-group">
                 <label for="dob">Date of Birth (Login Password) *</label>
                 <input type="text" id="dob" name="dob" required placeholder="DD-MM-YYYY (e.g. 15-08-1996)">
                 <small style="color:#2980b9; font-size:11.5px; display:block; margin-top:3px; font-weight:600;">
@@ -289,9 +275,6 @@ RenderHeader "Staff & User Management"
                     <tr style="border-bottom:1px solid #eee;">
                         <td style="padding:10px;">
                             <strong><%= Server.HTMLEncode(rsUsers("username") & "") %></strong>
-                            <% If Trim(rsUsers("staff_internal_number") & "") <> "" Then %>
-                                <span style="display:block; font-size:11.5px; color:#7f8c8d;"><%= Server.HTMLEncode(rsUsers("staff_internal_number") & "") %></span>
-                            <% End If %>
                         </td>
                         <td style="padding:10px;">
                             <code style="font-weight:700; color:#2c3e50; font-size:13.5px;"><%= Server.HTMLEncode(rsUsers("staff_number") & "") %></code>
