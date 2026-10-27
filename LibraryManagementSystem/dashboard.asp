@@ -74,46 +74,133 @@ On Error GoTo 0
 RenderHeader "Dashboard"
 %>
 
+<style>
+.dash-metric-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 18px;
+    margin-bottom: 26px;
+}
+.dash-metric-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 18px 20px;
+    border-radius: 14px;
+    border: 1px solid #e2e8f0;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.dash-metric-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 14px rgba(0,0,0,0.05);
+}
+.dm-blue { background-color: #f0f7ff; border-color: #d0e7ff; }
+.dm-amber { background-color: #fffbeb; border-color: #fef3c7; }
+.dm-green { background-color: #f0fdf4; border-color: #dcfce7; }
+.dm-purple { background-color: #f3e8ff; border-color: #f3d9fa; }
+.dm-teal { background-color: #ecfdf5; border-color: #a7f3d0; }
+
+.dm-icon-box {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+}
+.dm-icon-blue { background-color: #dbeafe; color: #0284c7; }
+.dm-icon-amber { background-color: #fef3c7; color: #d97706; }
+.dm-icon-green { background-color: #dcfce7; color: #16a34a; }
+.dm-icon-purple { background-color: #f3d9fa; color: #7e22ce; }
+.dm-icon-teal { background-color: #ccfbf1; color: #0f766e; }
+
+.dm-val {
+    font-size: 28px;
+    font-weight: 800;
+    color: #0f172a;
+    line-height: 1;
+    margin-bottom: 4px;
+}
+.dm-title {
+    font-size: 13.5px;
+    font-weight: 700;
+    color: #334155;
+}
+.dm-sub {
+    font-size: 12px;
+    color: #64748b;
+    margin-top: 2px;
+}
+</style>
+
 <% If IsStaff() Then %>
-    <h2 style="color:#2c3e50; margin-top:0;">System Overview (<%= Session("Role") %> Dashboard)</h2>
+    <div style="margin-bottom:20px;">
+        <h1 style="color:#0f172a; font-size:24px; font-weight:800; margin:0;">System Overview (<%= Session("Role") %> Dashboard)</h1>
+        <p style="color:#64748b; font-size:13.5px; margin:4px 0 0 0;">Real-time metrics, active loans, and borrowing activities at a glance.</p>
+    </div>
 
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px;">
-        <div class="card" style="border-left: 5px solid #3498db; margin-bottom: 0;">
-            <h3 style="margin:0; color:#7f8c8d; font-size: 14px; text-transform: uppercase;">Total Books</h3>
-            <p style="font-size: 32px; font-weight: bold; color: #2c3e50; margin: 10px 0 0 0;"><%= totalBooks %></p>
+    <div class="dash-metric-grid">
+        <div class="dash-metric-card dm-blue">
+            <div class="dm-icon-box dm-icon-blue">📚</div>
+            <div>
+                <div class="dm-val"><%= totalBooks %></div>
+                <div class="dm-title">Total Books</div>
+                <div class="dm-sub">In Catalog</div>
+            </div>
         </div>
 
-        <div class="card" style="border-left: 5px solid #f39c12; margin-bottom: 0;">
-            <h3 style="margin:0; color:#7f8c8d; font-size: 14px; text-transform: uppercase;">Pending Requests</h3>
-            <p style="font-size: 32px; font-weight: bold; color: #2c3e50; margin: 10px 0 0 0;"><%= pendingRequests %></p>
+        <div class="dash-metric-card dm-amber">
+            <div class="dm-icon-box dm-icon-amber">📋</div>
+            <div>
+                <div class="dm-val" style="color:#d97706;"><%= pendingRequests %></div>
+                <div class="dm-title" style="color:#b45309;">Pending Requests</div>
+                <div class="dm-sub">Awaiting action</div>
+            </div>
         </div>
 
-        <div class="card" style="border-left: 5px solid #2ecc71; margin-bottom: 0;">
-            <h3 style="margin:0; color:#7f8c8d; font-size: 14px; text-transform: uppercase;">Active Borrowings</h3>
-            <p style="font-size: 32px; font-weight: bold; color: #2c3e50; margin: 10px 0 0 0;"><%= activeBorrowings %></p>
+        <div class="dash-metric-card dm-green">
+            <div class="dm-icon-box dm-icon-green">⏱️</div>
+            <div>
+                <div class="dm-val" style="color:#16a34a;"><%= activeBorrowings %></div>
+                <div class="dm-title" style="color:#15803d;">Active Borrowings</div>
+                <div class="dm-sub">On loan</div>
+            </div>
         </div>
 
-        <div class="card" style="border-left: 5px solid #9b59b6; margin-bottom: 0;">
-            <h3 style="margin:0; color:#7f8c8d; font-size: 14px; text-transform: uppercase;">Total Users</h3>
-            <p style="font-size: 32px; font-weight: bold; color: #2c3e50; margin: 10px 0 0 0;"><%= totalUsers %></p>
+        <div class="dash-metric-card dm-purple">
+            <div class="dm-icon-box dm-icon-purple">👥</div>
+            <div>
+                <div class="dm-val" style="color:#7e22ce;"><%= totalUsers %></div>
+                <div class="dm-title" style="color:#6b21a8;">Total Users</div>
+                <div class="dm-sub">Registered staff</div>
+            </div>
         </div>
 
-        <div class="card" style="border-left: 5px solid #e67e22; margin-bottom: 0;">
-            <h3 style="margin:0; color:#7f8c8d; font-size: 14px; text-transform: uppercase;">Reviews & Feedback</h3>
-            <p style="font-size: 32px; font-weight: bold; color: #2c3e50; margin: 10px 0 0 0;"><%= totalFeedbacks %></p>
+        <div class="dash-metric-card dm-teal">
+            <div class="dm-icon-box dm-icon-teal">💬</div>
+            <div>
+                <div class="dm-val" style="color:#0f766e;"><%= totalFeedbacks %></div>
+                <div class="dm-title" style="color:#115e59;">Reviews &amp; Feedback</div>
+                <div class="dm-sub">Reader ratings</div>
+            </div>
         </div>
     </div>
 
     <div class="card">
         <div class="card-header">
-            <h3 style="margin:0; color:#2c3e50;">Recent Borrowing Activity</h3>
-            <a href="borrowings.asp" class="btn btn-primary">View All</a>
+            <div>
+                <h2 style="margin:0; font-size:18px; font-weight:700; color:#0f172a;">Recent Borrowing Activity</h2>
+                <p style="margin:4px 0 0 0; color:#64748b; font-size:13px;">Latest book checkouts and return tracking.</p>
+            </div>
+            <a href="borrowings.asp" class="btn btn-primary">View All Borrowings ➔</a>
         </div>
 
         <table>
             <thead>
                 <tr>
-                    <th>ID</th>
+                    <th>Loan ID</th>
                     <th>Book Title</th>
                     <th>Staff Name</th>
                     <th>Borrow Date</th>
@@ -126,7 +213,7 @@ RenderHeader "Dashboard"
                 If rsRecent Is Nothing Or rsRecent.State = 0 Or rsRecent.EOF Then
                 %>
                     <tr>
-                        <td colspan="6" style="text-align:center; color:#95a5a6;">No recent borrowings found.</td>
+                        <td colspan="6" style="text-align:center; color:#94a3b8; padding:24px;">No recent borrowings found.</td>
                     </tr>
                 <%
                 Else
@@ -137,17 +224,17 @@ RenderHeader "Dashboard"
                         isOver = (dStatus <> "Returned" And Date > CDate(dDueDate))
                         
                         If isOver Then
-                            rowBg = "style='background-color:#fce4e4; color:#721c24; border-left:4px solid #e74c3c; font-weight:bold;'"
+                            rowBg = "style='background-color:#fff5f5; color:#991b1b; font-weight:600;'"
                         Else
                             rowBg = ""
                         End If
                 %>
                     <tr <%= rowBg %>>
-                        <td>#<%= rsRecent("id") %></td>
-                        <td><%= CleanText(rsRecent("title") & "") %></td>
+                        <td><strong style="color:#0f172a;">#<%= rsRecent("id") %></strong></td>
+                        <td><strong style="color:#0d9488;"><%= CleanText(rsRecent("title") & "") %></strong></td>
                         <td><%= CleanText(rsRecent("username") & "") %></td>
-                        <td><%= FormatDateTime(rsRecent("borrow_date"), 2) %></td>
-                        <td><%= FormatDateTime(rsRecent("due_date"), 2) %></td>
+                        <td style="color:#64748b;"><%= FormatDateTime(rsRecent("borrow_date"), 2) %></td>
+                        <td><strong style="color:<%= IIf(isOver, "#dc2626", "#0f172a") %>;"><%= FormatDateTime(rsRecent("due_date"), 2) %></strong></td>
                         <td>
                             <% If isOver Then %>
                                 <span class="status-pill status-pill-red">🚨 Overdue</span>
@@ -169,35 +256,53 @@ RenderHeader "Dashboard"
     </div>
 
 <% Else %>
-    <h2 style="color:#2c3e50; margin-top:0;">Welcome, <%= Session("Username") %>! (Staff Dashboard)</h2>
+    <div style="margin-bottom:20px;">
+        <h1 style="color:#0f172a; font-size:24px; font-weight:800; margin:0;">Welcome, <%= Session("Username") %>!</h1>
+        <p style="color:#64748b; font-size:13.5px; margin:4px 0 0 0;">Member Portal &bull; Track your loans and request new books.</p>
+    </div>
 
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px;">
-        <div class="card" style="border-left: 5px solid #3498db; margin-bottom: 0;">
-            <h3 style="margin:0; color:#7f8c8d; font-size: 14px; text-transform: uppercase;">Total Books Catalog</h3>
-            <p style="font-size: 32px; font-weight: bold; color: #2c3e50; margin: 10px 0 0 0;"><%= totalBooks %></p>
+    <div class="dash-metric-grid">
+        <div class="dash-metric-card dm-blue">
+            <div class="dm-icon-box dm-icon-blue">📚</div>
+            <div>
+                <div class="dm-val"><%= totalBooks %></div>
+                <div class="dm-title">Total Catalog Books</div>
+                <div class="dm-sub">Available titles</div>
+            </div>
         </div>
 
-        <div class="card" style="border-left: 5px solid #2ecc71; margin-bottom: 0;">
-            <h3 style="margin:0; color:#7f8c8d; font-size: 14px; text-transform: uppercase;">My Borrowed Books</h3>
-            <p style="font-size: 32px; font-weight: bold; color: #2c3e50; margin: 10px 0 0 0;"><%= myActiveBorrowings %></p>
+        <div class="dash-metric-card dm-green">
+            <div class="dm-icon-box dm-icon-green">📖</div>
+            <div>
+                <div class="dm-val" style="color:#16a34a;"><%= myActiveBorrowings %></div>
+                <div class="dm-title" style="color:#15803d;">My Active Loans</div>
+                <div class="dm-sub">Currently reading</div>
+            </div>
         </div>
 
-        <div class="card" style="border-left: 5px solid #f39c12; margin-bottom: 0;">
-            <h3 style="margin:0; color:#7f8c8d; font-size: 14px; text-transform: uppercase;">My Pending Requests</h3>
-            <p style="font-size: 32px; font-weight: bold; color: #2c3e50; margin: 10px 0 0 0;"><%= myPendingRequests %></p>
+        <div class="dash-metric-card dm-amber">
+            <div class="dm-icon-box dm-icon-amber">📋</div>
+            <div>
+                <div class="dm-val" style="color:#d97706;"><%= myPendingRequests %></div>
+                <div class="dm-title" style="color:#b45309;">My Pending Requests</div>
+                <div class="dm-sub">Awaiting librarian</div>
+            </div>
         </div>
     </div>
 
     <div class="card">
         <div class="card-header">
-            <h3 style="margin:0; color:#2c3e50;">My Active & Recent Borrowings</h3>
+            <div>
+                <h2 style="margin:0; font-size:18px; font-weight:700; color:#0f172a;">My Active &amp; Recent Borrowings</h2>
+                <p style="margin:4px 0 0 0; color:#64748b; font-size:13px;">Manage your reading schedule and due dates.</p>
+            </div>
             <a href="request_book.asp" class="btn btn-success">+ Request New Book</a>
         </div>
 
         <table>
             <thead>
                 <tr>
-                    <th>ID</th>
+                    <th>Loan ID</th>
                     <th>Book Title</th>
                     <th>Borrow Date</th>
                     <th>Due Date (Day 15)</th>
@@ -209,7 +314,7 @@ RenderHeader "Dashboard"
                 If rsRecent Is Nothing Or rsRecent.State = 0 Or rsRecent.EOF Then
                 %>
                     <tr>
-                        <td colspan="5" style="text-align:center; color:#95a5a6;">No borrowings found in your account.</td>
+                        <td colspan="5" style="text-align:center; color:#94a3b8; padding:24px;">No borrowings found in your account.</td>
                     </tr>
                 <%
                 Else
@@ -220,16 +325,16 @@ RenderHeader "Dashboard"
                         mIsOver = (mStatus <> "Returned" And Date > CDate(mDueDate))
                         
                         If mIsOver Then
-                            mRowBg = "style='background-color:#fce4e4; color:#721c24; font-weight:bold;'"
+                            mRowBg = "style='background-color:#fff5f5; color:#991b1b; font-weight:600;'"
                         Else
                             mRowBg = ""
                         End If
                 %>
                     <tr <%= mRowBg %>>
-                        <td>#<%= rsRecent("id") %></td>
-                        <td><strong><%= CleanText(rsRecent("title") & "") %></strong></td>
-                        <td><%= FormatDateTime(rsRecent("borrow_date"), 2) %></td>
-                        <td><%= FormatDateTime(rsRecent("due_date"), 2) %></td>
+                        <td><strong style="color:#0f172a;">#<%= rsRecent("id") %></strong></td>
+                        <td><strong style="color:#0d9488;"><%= CleanText(rsRecent("title") & "") %></strong></td>
+                        <td style="color:#64748b;"><%= FormatDateTime(rsRecent("borrow_date"), 2) %></td>
+                        <td><strong style="color:<%= IIf(mIsOver, "#dc2626", "#0f172a") %>;"><%= FormatDateTime(rsRecent("due_date"), 2) %></strong></td>
                         <td>
                             <% If mIsOver Then %>
                                 <span class="status-pill status-pill-red">🚨 Overdue</span>

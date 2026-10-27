@@ -221,100 +221,102 @@ Sub RenderHeader(pageTitle)
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><%= pageTitle %> - BEL Library System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        * { box-sizing: border-box; font-family: 'Segoe UI', Arial, 'Noto Sans Kannada', Tahoma, Geneva, Verdana, sans-serif; }
-        body { margin: 0; padding: 0; background-color: #f4f6f9; color: #333; }
+        * { box-sizing: border-box; font-family: 'Plus Jakarta Sans', 'Segoe UI', Arial, 'Noto Sans Kannada', sans-serif; }
+        body { margin: 0; padding: 0; background-color: #f4f6fa; color: #1e293b; min-height: 100vh; }
         
-        /* Modern Single-Line Aligned Navigation Bar */
+        /* Modern Single-Line Aligned Navigation Bar (Reference Match) */
         .navbar {
-            background-color: #16202c;
+            background-color: #0b1320;
             color: #fff;
-            padding: 0 16px;
+            padding: 0 28px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            height: 64px;
+            height: 60px;
             position: sticky;
             top: 0;
             z-index: 1000;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            box-shadow: 0 2px 12px rgba(0,0,0,0.25);
             white-space: nowrap;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
         }
         .nav-left {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 16px;
             flex-shrink: 0;
         }
         .nav-brand {
             display: inline-flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
             text-decoration: none;
             color: #ffffff;
-            font-size: 19px;
+            font-size: 18px;
             font-weight: 800;
             letter-spacing: 0.3px;
             white-space: nowrap;
-            margin-right: 6px;
+            margin-right: 8px;
             flex-shrink: 0;
         }
         .nav-brand:hover {
-            color: #3498db;
+            color: #38bdf8;
         }
         .nav-links {
             display: flex;
             align-items: center;
-            gap: 3px;
+            gap: 4px;
             flex-shrink: 0;
         }
         .nav-link {
-            color: #d1d8e0;
+            color: #cbd5e1;
             text-decoration: none;
-            padding: 6px 10px;
-            border-radius: 6px;
-            font-size: 15px;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 14px;
             font-weight: 600;
             display: inline-flex;
             align-items: center;
-            gap: 5px;
-            transition: all 0.18s ease;
+            gap: 6px;
+            transition: all 0.15s ease;
             white-space: nowrap;
             flex-shrink: 0;
         }
         .nav-link span {
-            font-size: 16px;
+            font-size: 15px;
             line-height: 1;
         }
         .nav-link:hover {
             color: #ffffff;
-            background: rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.12);
         }
         .nav-link.active {
             color: #ffffff !important;
-            background: #3498db !important;
+            background: #0077f6 !important;
             font-weight: 700;
-            box-shadow: 0 2px 8px rgba(52, 152, 219, 0.45);
+            box-shadow: 0 2px 10px rgba(0, 119, 246, 0.45);
         }
         .nav-link.nav-analytics.active {
-            background: #27ae60 !important;
-            box-shadow: 0 2px 8px rgba(39, 174, 96, 0.45);
+            background: #0077f6 !important;
         }
         .nav-link.nav-admin.active {
-            background: #e67e22 !important;
-            box-shadow: 0 2px 8px rgba(230, 126, 34, 0.45);
+            background: #0077f6 !important;
         }
         .nav-divider {
-            height: 22px;
+            height: 20px;
             width: 1px;
-            background: rgba(255, 255, 255, 0.2);
-            margin: 0 4px;
+            background: rgba(255, 255, 255, 0.18);
+            margin: 0 6px;
             flex-shrink: 0;
         }
         .nav-right {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 14px;
             flex-shrink: 0;
             margin-left: auto;
         }
@@ -322,8 +324,8 @@ Sub RenderHeader(pageTitle)
             display: flex;
             align-items: center;
             gap: 8px;
-            font-size: 14.5px;
-            color: #ecf0f1;
+            font-size: 13.5px;
+            color: #e2e8f0;
             white-space: nowrap;
         }
         .nav-user-info strong {
@@ -331,12 +333,12 @@ Sub RenderHeader(pageTitle)
             color: #ffffff;
         }
         .nav-logout-btn {
-            background: rgba(231, 76, 60, 0.18);
-            color: #ff7675;
-            border: 1px solid rgba(231, 76, 60, 0.4);
-            padding: 6px 12px;
-            border-radius: 6px;
-            font-size: 14px;
+            background: rgba(239, 68, 68, 0.14);
+            color: #f87171;
+            border: 1px solid rgba(239, 68, 68, 0.35);
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-size: 13.5px;
             font-weight: 600;
             text-decoration: none;
             display: inline-flex;
@@ -345,79 +347,104 @@ Sub RenderHeader(pageTitle)
             transition: all 0.2s ease;
             white-space: nowrap;
         }
-        .nav-logout-btn span {
-            font-size: 15px;
-            line-height: 1;
-        }
         .nav-logout-btn:hover {
-            background: #e74c3c;
+            background: #ef4444;
             color: #ffffff;
-            border-color: #e74c3c;
-            box-shadow: 0 2px 8px rgba(231, 76, 60, 0.35);
+            border-color: #ef4444;
+            box-shadow: 0 2px 10px rgba(239, 68, 68, 0.4);
         }
 
-        @media (max-width: 1440px) {
-            .nav-link { padding: 5px 8px; font-size: 14px; gap: 4px; }
-            .nav-link span { font-size: 15px; }
-            .nav-brand { font-size: 18px; margin-right: 4px; }
-            .nav-user-info { font-size: 13.5px; }
+        @media (max-width: 1380px) {
+            .nav-link { padding: 5px 8px; font-size: 13.5px; gap: 4px; }
+            .nav-brand { font-size: 17px; }
             .welcome-label { display: none; }
         }
-        @media (max-width: 1250px) {
+        @media (max-width: 1100px) {
             .nav-links { overflow-x: auto; scrollbar-width: thin; }
         }
 
-        .container { max-width: 1100px; margin: 30px auto; padding: 0 20px; }
-        .card { background: white; padding: 24px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 24px; }
-        .card-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f1f1f1; padding-bottom: 12px; margin-bottom: 20px; }
-        .btn { padding: 8px 16px; border-radius: 4px; border: none; font-size: 14px; cursor: pointer; text-decoration: none; display: inline-block; }
-        .btn-primary { background: #3498db; color: white; }
-        .btn-success { background: #2ecc71; color: white; }
-        .btn-danger { background: #e74c3c; color: white; }
-        .btn-secondary { background: #95a5a6; color: white; }
-        .btn-warning { background: #f39c12; color: white; }
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        th, td { padding: 12px; border-bottom: 1px solid #eee; text-align: left; }
-        th { background: #f8f9fa; color: #2c3e50; font-weight: 600; }
-        .badge { padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: bold; color: white; }
-        .bg-success { background: #2ecc71; }
-        .bg-danger { background: #e74c3c; }
-        .bg-warning { background: #f39c12; }
+        /* Spacious Enterprise Content Container */
+        .container { max-width: 1340px; margin: 24px auto; padding: 0 24px; }
+        .card { 
+            background: #ffffff; 
+            padding: 28px 32px; 
+            border-radius: 16px; 
+            box-shadow: 0 4px 20px rgba(0,0,0,0.04); 
+            border: 1px solid #e2e8f0;
+            margin-bottom: 24px; 
+        }
+        .card-header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: flex-start; 
+            border-bottom: 1px solid #f1f5f9; 
+            padding-bottom: 18px; 
+            margin-bottom: 22px; 
+        }
+        .btn { 
+            padding: 9px 18px; 
+            border-radius: 8px; 
+            border: none; 
+            font-size: 13.5px; 
+            font-weight: 600;
+            cursor: pointer; 
+            text-decoration: none; 
+            display: inline-flex; 
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: all 0.15s ease;
+        }
+        .btn:hover { transform: translateY(-1px); }
+        .btn-primary { background: #0077f6; color: white; box-shadow: 0 2px 8px rgba(0,119,246,0.3); }
+        .btn-success { background: #16a34a; color: white; box-shadow: 0 2px 8px rgba(22,163,74,0.3); }
+        .btn-danger { background: #ef4444; color: white; box-shadow: 0 2px 8px rgba(239,68,68,0.3); }
+        .btn-secondary { background: #64748b; color: white; }
+        .btn-warning { background: #f59e0b; color: white; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { padding: 13px 16px; border-bottom: 1px solid #f1f5f9; text-align: left; vertical-align: middle !important; }
+        th { background: #f8fafc; color: #475569; font-weight: 700; font-size: 13px; border-bottom: 1.5px solid #e2e8f0; }
+        .badge { padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 700; color: white; }
+        .bg-success { background: #16a34a; }
+        .bg-danger { background: #ef4444; }
+        .bg-warning { background: #f59e0b; }
 
-        /* Unified Consistent Status Pills (Matches Design Spec) */
+        /* Unified Consistent Status Pills (Soft Pastel Enterprise System) */
         .status-pill {
             display: inline-block;
-            padding: 7px 18px;
+            padding: 6px 14px;
             border-radius: 20px;
-            font-size: 13.5px;
+            font-size: 12.5px;
             font-weight: 700;
             line-height: 1.2;
             text-align: center;
             white-space: nowrap;
         }
         .status-pill-green, .status-pill-available, .status-pill-returned, .status-pill-approved {
-            background-color: #d3f9d8;
-            color: #2b8a3e;
+            background-color: #dcfce7;
+            color: #15803d;
         }
         .status-pill-solid-green {
-            background-color: #27ae60;
+            background-color: #16a34a;
             color: #ffffff;
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
         .status-pill-amber, .status-pill-pending, .status-pill-borrowed, .status-pill-loaned {
-            background-color: #ffe8cc;
-            color: #d9480f;
+            background-color: #fef3c7;
+            color: #b45309;
         }
         .status-pill-blue, .status-pill-collected, .status-pill-issued, .status-pill-circulation, .status-pill-staff {
-            background-color: #d0ebff;
-            color: #1971c2;
+            background-color: #e0f2fe;
+            color: #0369a1;
         }
         .status-pill-red, .status-pill-rejected, .status-pill-expired, .status-pill-overdue, .status-pill-out, .status-pill-admin {
-            background-color: #ffe3e3;
-            color: #c92a2a;
+            background-color: #fee2e2;
+            color: #b91c1c;
         }
         .status-pill-purple, .status-pill-librarian {
-            background-color: #f3d9fa;
+            background-color: #f3e8ff;
+            color: #7e22ce;
+        }
             color: #9c36b5;
         }
         .status-pill-gray {
@@ -495,7 +522,11 @@ Sub RenderHeader(pageTitle)
     <div class="navbar">
         <div class="nav-left">
             <a href="dashboard.asp" class="nav-brand">
-                <span style="font-size:22px;">📖</span>
+                <svg width="24" height="16" viewBox="0 0 52 36" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align:middle;">
+                    <path d="M0 5h34c4.5 0 8 3.5 8 8s-3.5 8-8 8H6" stroke="#0080ff" stroke-width="6.5" stroke-linecap="round"/>
+                    <path d="M0 18h38c5 0 9 4 9 9s-4 9-9 9H10" stroke="#0080ff" stroke-width="6.5" stroke-linecap="round"/>
+                    <path d="M0 31h32" stroke="#0080ff" stroke-width="6.5" stroke-linecap="round"/>
+                </svg>
                 <span>BEL Library</span>
             </a>
 
@@ -506,12 +537,12 @@ Sub RenderHeader(pageTitle)
                     </a>
                     <% If HasPermission("books") Then %>
                         <a href="books.asp" class="nav-link <%= NavActive("books.asp", currentScript) %>">
-                            <span>📚</span> <%= IIf(IsStaff(), "Books", "Book Catalog") %>
+                            <span>📖</span> <%= IIf(IsStaff(), "Books", "Book Catalog") %>
                         </a>
                     <% End If %>
                     <% If HasPermission("requests") Then %>
                         <a href="requests.asp" class="nav-link <%= NavActive("requests.asp", currentScript) %>">
-                            <span>📋</span> <%= IIf(IsStaff(), "Requests", "My Requests") %>
+                            <span>📑</span> <%= IIf(IsStaff(), "Requests", "My Requests") %>
                         </a>
                     <% End If %>
                     <% If HasPermission("borrowings") Then %>
@@ -520,7 +551,7 @@ Sub RenderHeader(pageTitle)
                         </a>
                     <% End If %>
                     <% If IsStaff() Then %>
-                        <a href="analytics.asp" class="nav-link nav-analytics <%= NavActive("analytics.asp", currentScript) %>" style="<%= IIf(NavActive("analytics.asp", currentScript)="active", "", "color:#2ecc71; font-weight:600;") %>">
+                        <a href="analytics.asp" class="nav-link nav-analytics <%= NavActive("analytics.asp", currentScript) %>" style="<%= IIf(NavActive("analytics.asp", currentScript)="active", "", "color:#cbd5e1; font-weight:600;") %>">
                             <span>📊</span> Analytics
                         </a>
                         <a href="users.asp" class="nav-link <%= NavActive("users.asp", currentScript) %>">
@@ -556,8 +587,8 @@ Sub RenderHeader(pageTitle)
         <div class="nav-right">
             <% If Not IsEmpty(Session("UserId")) Then %>
                 <div class="nav-user-info">
-                    <span><span class="welcome-label">Welcome, </span><strong><%= CleanText(user) %></strong></span>
-                    <span class="badge" style="background:<%= roleBadgeBg %>; font-size:12px; padding:3px 9px; font-weight:700;"><%= CleanText(role) %></span>
+                    <span>Welcome, <strong><%= CleanText(user) %></strong> <span style="font-size:10px; opacity:0.75; vertical-align:middle;">▼</span></span>
+                    <span class="badge" style="background:<%= roleBadgeBg %>; border-radius:12px; font-size:12px; padding:3px 10px; font-weight:700;"><%= CleanText(role) %></span>
                 </div>
                 <a href="logout.asp" class="nav-logout-btn" title="Sign out of your account">
                     <span>🚪</span> Logout
