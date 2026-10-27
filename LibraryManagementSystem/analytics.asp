@@ -249,6 +249,40 @@ RenderHeader "Library Analytics & Inventory Intelligence"
     </div>
 </div>
 
+<style>
+/* Analytics Table Baseline & Overflow Alignment */
+.analytics-card {
+    margin: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+.analytics-tbl-wrap {
+    width: 100%;
+    overflow-x: auto;
+}
+.analytics-tbl {
+    width: 100%;
+    border-collapse: collapse;
+}
+.analytics-tbl th,
+.analytics-tbl td {
+    padding: 10px 12px;
+    vertical-align: middle !important;
+    border-bottom: 1px solid #eee;
+}
+.analytics-tbl th {
+    background: #f8f9fa;
+    color: #2c3e50;
+    font-weight: 600;
+    font-size: 13px;
+    white-space: nowrap;
+}
+.col-nowrap {
+    white-space: nowrap !important;
+}
+</style>
+
 <!-- ==================================================================== -->
 <!-- 3. Overdue Audits (If Any Exist) -->
 <!-- ==================================================================== -->
@@ -262,44 +296,46 @@ RenderHeader "Library Analytics & Inventory Intelligence"
         <a href="borrowings.asp?filter=overdue" class="btn btn-danger" style="padding:6px 14px; font-size:13px;">Manage in Borrowings ➔</a>
     </div>
 
-    <table>
-        <thead>
-            <tr>
-                <th>#ID</th>
-                <th>Overdue Book Title</th>
-                <th>Borrower (Staff)</th>
-                <th>Staff Number</th>
-                <th>Borrowed On</th>
-                <th>Due Date (Day 15)</th>
-                <th>Days Late</th>
-                <th>Action</th>
-            </tr>
-        </thead>
-        <tbody>
-            <%
-            Do While Not rsOverdueLog.EOF
-            %>
-            <tr style="background:#fff7f7;">
-                <td>#<%= rsOverdueLog("id") %></td>
-                <td><strong style="color:#c0392b;"><%= CleanText(rsOverdueLog("title") & "") %></strong></td>
-                <td><strong><%= CleanText(rsOverdueLog("username") & "") %></strong></td>
-                <td><code><%= CleanText(rsOverdueLog("staff_number") & "") %></code></td>
-                <td><%= FormatDateTime(rsOverdueLog("borrow_date"), 2) %></td>
-                <td><strong style="color:#e74c3c;"><%= FormatDateTime(rsOverdueLog("due_date"), 2) %></strong></td>
-                <td><span class="status-pill status-pill-red">+<%= rsOverdueLog("days_late") %> Days Late</span></td>
-                <td>
-                    <div class="action-stack" style="width:115px;">
-                        <a href="borrowings.asp?filter=overdue" class="action-btn action-btn-edit">Process Return</a>
-                    </div>
-                </td>
-            </tr>
-            <%
-                rsOverdueLog.MoveNext
-            Loop
-            rsOverdueLog.Close
-            %>
-        </tbody>
-    </table>
+    <div class="analytics-tbl-wrap">
+        <table class="analytics-tbl">
+            <thead>
+                <tr>
+                    <th>#ID</th>
+                    <th>Overdue Book Title</th>
+                    <th>Borrower (Staff)</th>
+                    <th>Staff Number</th>
+                    <th>Borrowed On</th>
+                    <th>Due Date (Day 15)</th>
+                    <th style="text-align:center;">Days Late</th>
+                    <th style="text-align:center; width:125px;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <%
+                Do While Not rsOverdueLog.EOF
+                %>
+                <tr style="background:#fff7f7;">
+                    <td>#<%= rsOverdueLog("id") %></td>
+                    <td><strong style="color:#c0392b;"><%= CleanText(rsOverdueLog("title") & "") %></strong></td>
+                    <td><strong><%= CleanText(rsOverdueLog("username") & "") %></strong></td>
+                    <td><code><%= CleanText(rsOverdueLog("staff_number") & "") %></code></td>
+                    <td class="col-nowrap"><%= FormatDateTime(rsOverdueLog("borrow_date"), 2) %></td>
+                    <td class="col-nowrap"><strong style="color:#e74c3c;"><%= FormatDateTime(rsOverdueLog("due_date"), 2) %></strong></td>
+                    <td style="text-align:center;" class="col-nowrap"><span class="status-pill status-pill-red">+<%= rsOverdueLog("days_late") %> Days Late</span></td>
+                    <td style="text-align:center;">
+                        <div class="action-stack" style="width:115px; margin:0 auto;">
+                            <a href="borrowings.asp?filter=overdue" class="action-btn action-btn-edit">Process Return</a>
+                        </div>
+                    </td>
+                </tr>
+                <%
+                    rsOverdueLog.MoveNext
+                Loop
+                rsOverdueLog.Close
+                %>
+            </tbody>
+        </table>
+    </div>
 </div>
 <% End If %>
 
@@ -309,89 +345,94 @@ RenderHeader "Library Analytics & Inventory Intelligence"
 <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); gap:24px; margin-bottom:28px;">
     
     <!-- Category Distribution Table -->
-    <div class="card" style="margin:0;">
+    <div class="card analytics-card">
         <div class="card-header">
             <h3 style="margin:0; color:#2c3e50; font-size:18px;">📁 Category Breakdown & Volumes</h3>
             <a href="categories.asp" class="btn btn-secondary" style="padding:4px 10px; font-size:12px;">Categories ➔</a>
         </div>
-        <table>
-            <thead>
-                <tr>
-                    <th>Category Name</th>
-                    <th>Titles</th>
-                    <th>Shelf Stock</th>
-                    <th>Active Loans</th>
-                </tr>
-            </thead>
-            <tbody>
-                <%
-                If Not rsCatDist Is Nothing And rsCatDist.State = 1 Then
-                    Do While Not rsCatDist.EOF
-                %>
-                <tr>
-                    <td><strong style="color:#2c3e50;"><%= CleanText(rsCatDist("name") & "") %></strong></td>
-                    <td><span class="status-pill status-pill-blue" style="font-size:12px; padding:3px 12px;"><%= rsCatDist("title_count") %> Titles</span></td>
-                    <td><strong><%= rsCatDist("copies_count") %> copies</strong></td>
-                    <td>
-                        <% If SafeInt(rsCatDist("active_loans"), 0) > 0 Then %>
-                            <span class="status-pill status-pill-amber" style="font-size:12px; padding:3px 12px;"><%= rsCatDist("active_loans") %> on loan</span>
-                        <% Else %>
-                            <span style="color:#95a5a6; font-size:12px;">0 on loan</span>
-                        <% End If %>
-                    </td>
-                </tr>
-                <%
-                        rsCatDist.MoveNext
-                    Loop
-                    rsCatDist.Close
-                End If
-                %>
-            </tbody>
-        </table>
+        <div class="analytics-tbl-wrap">
+            <table class="analytics-tbl">
+                <thead>
+                    <tr>
+                        <th>Category Name</th>
+                        <th style="text-align:center;">Titles</th>
+                        <th style="text-align:center;">Shelf Stock</th>
+                        <th style="text-align:center;">Active Loans</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <%
+                    If Not rsCatDist Is Nothing And rsCatDist.State = 1 Then
+                        Do While Not rsCatDist.EOF
+                    %>
+                    <tr>
+                        <td><strong style="color:#2c3e50;"><%= CleanText(rsCatDist("name") & "") %></strong></td>
+                        <td style="text-align:center;" class="col-nowrap"><span class="status-pill status-pill-blue" style="font-size:12px; padding:3px 12px;"><%= rsCatDist("title_count") %> Titles</span></td>
+                        <td style="text-align:center;" class="col-nowrap"><strong><%= rsCatDist("copies_count") %> copies</strong></td>
+                        <td style="text-align:center;" class="col-nowrap">
+                            <% If SafeInt(rsCatDist("active_loans"), 0) > 0 Then %>
+                                <span class="status-pill status-pill-amber" style="font-size:12px; padding:3px 12px;"><%= rsCatDist("active_loans") %> on loan</span>
+                            <% Else %>
+                                <span style="color:#95a5a6; font-size:12px;">0 on loan</span>
+                            <% End If %>
+                        </td>
+                    </tr>
+                    <%
+                            rsCatDist.MoveNext
+                        Loop
+                        rsCatDist.Close
+                    End If
+                    %>
+                </tbody>
+            </table>
+        </div>
     </div>
 
     <!-- Top In-Demand Books -->
-    <div class="card" style="margin:0;">
+    <div class="card analytics-card">
         <div class="card-header">
             <h3 style="margin:0; color:#2c3e50; font-size:18px;">🔥 Most Popular / In-Demand Books</h3>
             <a href="books.asp" class="btn btn-secondary" style="padding:4px 10px; font-size:12px;">Catalog ➔</a>
         </div>
-        <table>
-            <thead>
-                <tr>
-                    <th>Book Title</th>
-                    <th>Author</th>
-                    <th>Price</th>
-                    <th>Times Loaned</th>
-                    <th>Shelf Left</th>
-                </tr>
-            </thead>
-            <tbody>
-                <%
-                If Not rsTopBooks Is Nothing And rsTopBooks.State = 1 Then
-                    Do While Not rsTopBooks.EOF
-                %>
-                <tr>
-                    <td><strong style="color:#2c3e50;"><%= CleanText(rsTopBooks("title") & "") %></strong></td>
-                    <td><%= CleanText(rsTopBooks("author_name") & "") %></td>
-                    <td><strong style="color:#27ae60;">&#8377;<%= FormatNumber(SafeFloat(rsTopBooks("price"), 0), 2) %></strong></td>
-                    <td><span class="status-pill status-pill-amber" style="font-size:12px; padding:3px 12px;">⭐ <%= rsTopBooks("borrow_count") %> Loans</span></td>
-                    <td>
-                        <% If SafeInt(rsTopBooks("copies_available"), 0) > 0 Then %>
-                            <span class="status-pill status-pill-green" style="font-size:12px; padding:3px 12px;"><%= rsTopBooks("copies_available") %> Left</span>
-                        <% Else %>
-                            <span class="status-pill status-pill-red" style="font-size:12px; padding:3px 12px;">Out of stock</span>
-                        <% End If %>
-                    </td>
-                </tr>
-                <%
-                        rsTopBooks.MoveNext
-                    Loop
-                    rsTopBooks.Close
-                End If
-                %>
-            </tbody>
-        </table>
+        <div class="analytics-tbl-wrap">
+            <table class="analytics-tbl">
+                <thead>
+                    <tr>
+                        <th>Book & Author</th>
+                        <th style="text-align:right;">Price</th>
+                        <th style="text-align:center;">Times Loaned</th>
+                        <th style="text-align:center;">Shelf Stock</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <%
+                    If Not rsTopBooks Is Nothing And rsTopBooks.State = 1 Then
+                        Do While Not rsTopBooks.EOF
+                    %>
+                    <tr>
+                        <td>
+                            <strong style="color:#2c3e50; font-size:13.5px; display:block; line-height:1.3;"><%= CleanText(rsTopBooks("title") & "") %></strong>
+                            <span style="color:#7f8c8d; font-size:12px; display:block; margin-top:3px;">✍️ <%= CleanText(rsTopBooks("author_name") & "") %></span>
+                        </td>
+                        <td style="text-align:right;" class="col-nowrap"><strong style="color:#27ae60;">&#8377;<%= FormatNumber(SafeFloat(rsTopBooks("price"), 0), 2) %></strong></td>
+                        <td style="text-align:center;" class="col-nowrap"><span class="status-pill status-pill-amber" style="font-size:12px; padding:3px 12px;">⭐ <%= rsTopBooks("borrow_count") %> Loans</span></td>
+                        <td style="text-align:center;" class="col-nowrap">
+                            <% If SafeInt(rsTopBooks("copies_available"), 0) > 0 Then %>
+                                <span class="status-pill status-pill-green" style="font-size:12px; padding:3px 12px;"><%= rsTopBooks("copies_available") %> Left</span>
+                            <% Else %>
+                                <span class="status-pill status-pill-red" style="font-size:12px; padding:3px 12px;">Out of stock</span>
+                            <% End If %>
+                        </td>
+                    </tr>
+                    <%
+                            rsTopBooks.MoveNext
+                        Loop
+                        rsTopBooks.Close
+                    End If
+                    %>
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 
@@ -407,63 +448,65 @@ RenderHeader "Library Analytics & Inventory Intelligence"
         <a href="borrowings.asp" class="btn btn-secondary" style="padding:5px 12px; font-size:12.5px;">Borrowing Log ➔</a>
     </div>
 
-    <table>
-        <thead>
-            <tr>
-                <th>Member Name</th>
-                <th>Role</th>
-                <th>Staff Number</th>
-                <th>Currently Holding</th>
-                <th>Successfully Returned</th>
-                <th>Reading Status</th>
-            </tr>
-        </thead>
-        <tbody>
-            <%
-            If Not rsTopBorrowers Is Nothing And rsTopBorrowers.State = 1 Then
-                Do While Not rsTopBorrowers.EOF
-                    Dim curHeld
-                    curHeld = SafeInt(rsTopBorrowers("current_held"), 0)
-            %>
-            <tr>
-                <td><strong><%= CleanText(rsTopBorrowers("username") & "") %></strong></td>
-                <td>
-                    <% If LCase(Trim(rsTopBorrowers("role") & "")) = "admin" Then %>
-                        <span class="status-pill status-pill-red" style="font-size:12px; padding:3px 12px;">Admin</span>
-                    <% ElseIf LCase(Trim(rsTopBorrowers("role") & "")) = "librarian" Then %>
-                        <span class="status-pill status-pill-purple" style="font-size:12px; padding:3px 12px;">Librarian</span>
-                    <% Else %>
-                        <span class="status-pill status-pill-blue" style="font-size:12px; padding:3px 12px;">Staff</span>
-                    <% End If %>
-                </td>
-                <td><code><%= CleanText(rsTopBorrowers("staff_number") & "") %></code></td>
-                <td>
-                    <% If curHeld > 0 Then %>
-                        <span class="status-pill status-pill-amber" style="font-size:12px; padding:3px 12px;"><%= curHeld %> Active</span>
-                    <% Else %>
-                        <span style="color:#95a5a6; font-size:12.5px;">0 Active</span>
-                    <% End If %>
-                </td>
-                <td><strong style="color:#27ae60;"><%= rsTopBorrowers("total_returned") %> Books Returned</strong></td>
-                <td>
-                    <% If curHeld > 0 Then %>
-                        <span style="color:#2980b9; font-weight:600;">📖 Actively Reading</span>
-                    <% Else %>
-                        <span style="color:#27ae60; font-weight:600;">✅ Clean Record</span>
-                    <% End If %>
-                </td>
-            </tr>
-            <%
-                    rsTopBorrowers.MoveNext
-                Loop
-                rsTopBorrowers.Close
-            End If
+    <div class="analytics-tbl-wrap">
+        <table class="analytics-tbl">
+            <thead>
+                <tr>
+                    <th>Member Name</th>
+                    <th style="text-align:center;">Role</th>
+                    <th>Staff Number</th>
+                    <th style="text-align:center;">Currently Holding</th>
+                    <th style="text-align:center;">Successfully Returned</th>
+                    <th style="text-align:center;">Reading Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                <%
+                If Not rsTopBorrowers Is Nothing And rsTopBorrowers.State = 1 Then
+                    Do While Not rsTopBorrowers.EOF
+                        Dim curHeld
+                        curHeld = SafeInt(rsTopBorrowers("current_held"), 0)
+                %>
+                <tr>
+                    <td><strong><%= CleanText(rsTopBorrowers("username") & "") %></strong></td>
+                    <td style="text-align:center;">
+                        <% If LCase(Trim(rsTopBorrowers("role") & "")) = "admin" Then %>
+                            <span class="status-pill status-pill-red" style="font-size:12px; padding:3px 12px;">Admin</span>
+                        <% ElseIf LCase(Trim(rsTopBorrowers("role") & "")) = "librarian" Then %>
+                            <span class="status-pill status-pill-purple" style="font-size:12px; padding:3px 12px;">Librarian</span>
+                        <% Else %>
+                            <span class="status-pill status-pill-blue" style="font-size:12px; padding:3px 12px;">Staff</span>
+                        <% End If %>
+                    </td>
+                    <td><code><%= CleanText(rsTopBorrowers("staff_number") & "") %></code></td>
+                    <td style="text-align:center;" class="col-nowrap">
+                        <% If curHeld > 0 Then %>
+                            <span class="status-pill status-pill-amber" style="font-size:12px; padding:3px 12px;"><%= curHeld %> Active</span>
+                        <% Else %>
+                            <span style="color:#95a5a6; font-size:12.5px;">0 Active</span>
+                        <% End If %>
+                    </td>
+                    <td style="text-align:center;" class="col-nowrap"><strong style="color:#27ae60;"><%= rsTopBorrowers("total_returned") %> Books Returned</strong></td>
+                    <td style="text-align:center;" class="col-nowrap">
+                        <% If curHeld > 0 Then %>
+                            <span style="color:#2980b9; font-weight:600;">📖 Actively Reading</span>
+                        <% Else %>
+                            <span style="color:#27ae60; font-weight:600;">✅ Clean Record</span>
+                        <% End If %>
+                    </td>
+                </tr>
+                <%
+                        rsTopBorrowers.MoveNext
+                    Loop
+                    rsTopBorrowers.Close
+                End If
 
-            conn.Close
-            Set conn = Nothing
-            %>
-        </tbody>
-    </table>
+                conn.Close
+                Set conn = Nothing
+                %>
+            </tbody>
+        </table>
+    </div>
 </div>
 
 <% RenderFooter %>
