@@ -286,9 +286,11 @@ RenderHeader "Library Analytics & Inventory Intelligence"
                 <td><code><%= CleanText(rsOverdueLog("staff_number") & "") %></code></td>
                 <td><%= FormatDateTime(rsOverdueLog("borrow_date"), 2) %></td>
                 <td><strong style="color:#e74c3c;"><%= FormatDateTime(rsOverdueLog("due_date"), 2) %></strong></td>
-                <td><span class="badge bg-danger">+<%= rsOverdueLog("days_late") %> Days Late</span></td>
+                <td><span class="status-pill status-pill-red">+<%= rsOverdueLog("days_late") %> Days Late</span></td>
                 <td>
-                    <a href="borrowings.asp?filter=overdue" class="btn btn-primary" style="padding:4px 8px; font-size:12px;">Process Return</a>
+                    <div class="action-stack" style="width:115px;">
+                        <a href="borrowings.asp?filter=overdue" class="action-btn action-btn-edit">Process Return</a>
+                    </div>
                 </td>
             </tr>
             <%
@@ -328,11 +330,11 @@ RenderHeader "Library Analytics & Inventory Intelligence"
                 %>
                 <tr>
                     <td><strong style="color:#2c3e50;"><%= CleanText(rsCatDist("name") & "") %></strong></td>
-                    <td><span class="badge" style="background:#3498db;"><%= rsCatDist("title_count") %> Titles</span></td>
+                    <td><span class="status-pill status-pill-blue" style="font-size:12px; padding:3px 12px;"><%= rsCatDist("title_count") %> Titles</span></td>
                     <td><strong><%= rsCatDist("copies_count") %> copies</strong></td>
                     <td>
                         <% If SafeInt(rsCatDist("active_loans"), 0) > 0 Then %>
-                            <span class="badge bg-warning"><%= rsCatDist("active_loans") %> on loan</span>
+                            <span class="status-pill status-pill-amber" style="font-size:12px; padding:3px 12px;"><%= rsCatDist("active_loans") %> on loan</span>
                         <% Else %>
                             <span style="color:#95a5a6; font-size:12px;">0 on loan</span>
                         <% End If %>
@@ -373,12 +375,12 @@ RenderHeader "Library Analytics & Inventory Intelligence"
                     <td><strong style="color:#2c3e50;"><%= CleanText(rsTopBooks("title") & "") %></strong></td>
                     <td><%= CleanText(rsTopBooks("author_name") & "") %></td>
                     <td><strong style="color:#27ae60;">&#8377;<%= FormatNumber(SafeFloat(rsTopBooks("price"), 0), 2) %></strong></td>
-                    <td><span class="badge" style="background:#e67e22; font-size:12px;">⭐ <%= rsTopBooks("borrow_count") %> Loans</span></td>
+                    <td><span class="status-pill status-pill-amber" style="font-size:12px; padding:3px 12px;">⭐ <%= rsTopBooks("borrow_count") %> Loans</span></td>
                     <td>
                         <% If SafeInt(rsTopBooks("copies_available"), 0) > 0 Then %>
-                            <span class="badge bg-success"><%= rsTopBooks("copies_available") %> Left</span>
+                            <span class="status-pill status-pill-green" style="font-size:12px; padding:3px 12px;"><%= rsTopBooks("copies_available") %> Left</span>
                         <% Else %>
-                            <span class="badge bg-danger">Out of stock</span>
+                            <span class="status-pill status-pill-red" style="font-size:12px; padding:3px 12px;">Out of stock</span>
                         <% End If %>
                     </td>
                 </tr>
@@ -425,11 +427,19 @@ RenderHeader "Library Analytics & Inventory Intelligence"
             %>
             <tr>
                 <td><strong><%= CleanText(rsTopBorrowers("username") & "") %></strong></td>
-                <td><span class="badge" style="background:#34495e;"><%= CleanText(rsTopBorrowers("role") & "") %></span></td>
+                <td>
+                    <% If LCase(Trim(rsTopBorrowers("role") & "")) = "admin" Then %>
+                        <span class="status-pill status-pill-red" style="font-size:12px; padding:3px 12px;">Admin</span>
+                    <% ElseIf LCase(Trim(rsTopBorrowers("role") & "")) = "librarian" Then %>
+                        <span class="status-pill status-pill-purple" style="font-size:12px; padding:3px 12px;">Librarian</span>
+                    <% Else %>
+                        <span class="status-pill status-pill-blue" style="font-size:12px; padding:3px 12px;">Staff</span>
+                    <% End If %>
+                </td>
                 <td><code><%= CleanText(rsTopBorrowers("staff_number") & "") %></code></td>
                 <td>
                     <% If curHeld > 0 Then %>
-                        <span class="badge bg-warning"><%= curHeld %> Active</span>
+                        <span class="status-pill status-pill-amber" style="font-size:12px; padding:3px 12px;"><%= curHeld %> Active</span>
                     <% Else %>
                         <span style="color:#95a5a6; font-size:12.5px;">0 Active</span>
                     <% End If %>
