@@ -131,6 +131,82 @@ Set rsList = conn.Execute(sqlList)
 RenderHeader IIf(IsStaff(), "Book Requests Approval", "My Book Requests")
 %>
 
+<style>
+/* Soft Pastel Status Pills (Matches Screenshot Exactly) */
+.req-status-pill {
+    display: inline-block;
+    padding: 7px 18px;
+    border-radius: 20px;
+    font-size: 13.5px;
+    font-weight: 700;
+    line-height: 1.2;
+    text-align: center;
+    white-space: nowrap;
+}
+.req-pill-collected {
+    background-color: #d0ebff;
+    color: #1971c2;
+}
+.req-pill-pending {
+    background-color: #ffe8cc;
+    color: #d9480f;
+}
+.req-pill-rejected {
+    background-color: #ffe3e3;
+    color: #c92a2a;
+}
+.req-pill-expired {
+    background-color: #f8d7da;
+    color: #a71d2a;
+}
+.req-pill-approved {
+    background-color: #d3f9d8;
+    color: #2b8a3e;
+}
+
+/* Action Column & Stacked Buttons (Matches Screenshot Exactly) */
+.req-action-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    width: 105px;
+}
+.req-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 7px 12px;
+    border-radius: 8px;
+    font-size: 13.5px;
+    font-weight: 700;
+    color: #ffffff !important;
+    border: none;
+    cursor: pointer;
+    text-align: center;
+    box-sizing: border-box;
+    transition: opacity 0.15s ease, transform 0.1s ease;
+}
+.req-btn:hover {
+    opacity: 0.92;
+    transform: translateY(-1px);
+}
+.req-btn-approve {
+    background-color: #20c997;
+}
+.req-btn-reject {
+    background-color: #e74c3c;
+}
+.req-btn-collect {
+    background-color: #27ae60;
+}
+.action-text-muted {
+    color: #868e96;
+    font-size: 14px;
+    font-weight: 600;
+}
+</style>
+
 <div class="card">
     <div class="card-header">
         <div>
@@ -160,7 +236,7 @@ RenderHeader IIf(IsStaff(), "Book Requests Approval", "My Book Requests")
                 <th>Borrow Dates</th>
                 <th>Status &amp; 48h Window</th>
                 <% If IsStaff() Then %>
-                    <th>Action</th>
+                    <th style="width:115px;">Action</th>
                 <% End If %>
             </tr>
         </thead>
@@ -200,39 +276,47 @@ RenderHeader IIf(IsStaff(), "Book Requests Approval", "My Book Requests")
                     </td>
                     <td>
                         <% If reqStatus = "Approved" Then %>
-                            <span class="badge bg-success">Approved</span><br>
-                            <small style="color:#27ae60; font-weight:bold;">Collect in <%= hoursRemaining %>h</small>
+                            <span class="req-status-pill req-pill-approved">Approved</span>
+                            <div style="font-size:11.5px; color:#2b8a3e; font-weight:bold; margin-top:3px;">Collect in <%= hoursRemaining %>h</div>
                         <% ElseIf reqStatus = "Collected" Then %>
-                            <span class="badge bg-primary" style="background:#3498db;">Collected / Issued</span>
+                            <span class="req-status-pill req-pill-collected">Collected / Issued</span>
                         <% ElseIf reqStatus = "Expired" Then %>
-                            <span class="badge bg-danger">Expired (48h Passed)</span>
+                            <span class="req-status-pill req-pill-expired">Expired (48h Passed)</span>
                         <% ElseIf reqStatus = "Rejected" Then %>
-                            <span class="badge bg-danger">Rejected</span>
+                            <span class="req-status-pill req-pill-rejected">Rejected</span>
                         <% Else %>
-                            <span class="badge bg-warning">Pending Approval</span>
+                            <span class="req-status-pill req-pill-pending">Pending Approval</span>
                         <% End If %>
                     </td>
                     <% If IsStaff() Then %>
                         <td>
                             <% If reqStatus = "Pending" Then %>
-                                <form action="requests.asp" method="POST" style="display:inline-block; margin-right:4px;">
-                                    <input type="hidden" name="action_type" value="approve">
-                                    <input type="hidden" name="request_id" value="<%= rsList("req_id") %>">
-                                    <button type="submit" class="btn btn-success" style="padding:4px 8px; font-size:11px;">Approve</button>
-                                </form>
-                                <form action="requests.asp" method="POST" style="display:inline-block;">
-                                    <input type="hidden" name="action_type" value="reject">
-                                    <input type="hidden" name="request_id" value="<%= rsList("req_id") %>">
-                                    <button type="submit" class="btn btn-danger" style="padding:4px 8px; font-size:11px;" onclick="return confirm('Reject this request?');">Reject</button>
-                                </form>
+                                <div class="req-action-stack">
+                                    <form action="requests.asp" method="POST" style="margin:0;">
+                                        <input type="hidden" name="action_type" value="approve">
+                                        <input type="hidden" name="request_id" value="<%= rsList("req_id") %>">
+                                        <button type="submit" class="req-btn req-btn-approve">Approve</button>
+                                    </form>
+                                    <form action="requests.asp" method="POST" style="margin:0;">
+                                        <input type="hidden" name="action_type" value="reject">
+                                        <input type="hidden" name="request_id" value="<%= rsList("req_id") %>">
+                                        <button type="submit" class="req-btn req-btn-reject" onclick="return confirm('Reject this request?');">Reject</button>
+                                    </form>
+                                </div>
                             <% ElseIf reqStatus = "Approved" Then %>
-                                <form action="requests.asp" method="POST" style="display:inline-block;">
+                                <form action="requests.asp" method="POST" style="margin:0;">
                                     <input type="hidden" name="action_type" value="collect">
                                     <input type="hidden" name="request_id" value="<%= rsList("req_id") %>">
-                                    <button type="submit" class="btn btn-primary" style="padding:4px 8px; font-size:11px; background:#27ae60;">Mark Collected</button>
+                                    <button type="submit" class="req-btn req-btn-collect" style="width:105px;">Mark Collected</button>
                                 </form>
+                            <% ElseIf reqStatus = "Collected" Then %>
+                                <span class="action-text-muted">Collected</span>
+                            <% ElseIf reqStatus = "Rejected" Then %>
+                                <span class="action-text-muted">Rejected</span>
+                            <% ElseIf reqStatus = "Expired" Then %>
+                                <span class="action-text-muted">Expired</span>
                             <% Else %>
-                                <span style="color:#95a5a6; font-size:11px;"><%= reqStatus %></span>
+                                <span class="action-text-muted"><%= reqStatus %></span>
                             <% End If %>
                         </td>
                     <% End If %>
