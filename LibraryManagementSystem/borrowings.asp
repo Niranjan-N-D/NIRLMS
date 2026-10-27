@@ -474,23 +474,25 @@ RenderHeader IIf(IsStaff(), "Book Borrowing Management", "My Borrowed Books")
                     </td>
                     <td>
                         <% If isOverdueRed Then %>
-                            <span class="badge bg-danger" style="font-size:12px;">🚨 OVERDUE (Day 16+)</span>
+                            <span class="status-pill status-pill-red">🚨 Overdue</span>
                         <% ElseIf bStatus = "Returned" Then %>
-                            <span class="badge bg-success">Returned</span>
+                            <span class="status-pill status-pill-green">Returned</span>
                         <% Else %>
-                            <span class="badge bg-warning">Borrowed</span>
+                            <span class="status-pill status-pill-amber">Borrowed</span>
                         <% End If %>
                     </td>
                     <% If IsStaff() Then %>
                         <td>
                             <% If bStatus <> "Returned" Then %>
-                                <form action="borrowings.asp" method="POST" style="display:inline-block;">
-                                    <input type="hidden" name="action_type" value="return">
-                                    <input type="hidden" name="borrow_id" value="<%= rsList("id") %>">
-                                    <button type="submit" class="btn btn-primary" style="padding:4px 8px; font-size:12px;">Mark Returned</button>
-                                </form>
+                                <div class="action-stack" style="width:115px;">
+                                    <form action="borrowings.asp" method="POST" style="margin:0;">
+                                        <input type="hidden" name="action_type" value="return">
+                                        <input type="hidden" name="borrow_id" value="<%= rsList("id") %>">
+                                        <button type="submit" class="action-btn action-btn-request">Return Book</button>
+                                    </form>
+                                </div>
                             <% Else %>
-                                <span style="color:#95a5a6; font-size:12px;">Completed</span>
+                                <span class="action-text-muted">Completed</span>
                             <% End If %>
                         </td>
                     <% End If %>

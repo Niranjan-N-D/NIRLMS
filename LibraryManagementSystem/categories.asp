@@ -117,11 +117,13 @@ RenderHeader "Categories Management"
                         <td><strong><%= Server.HTMLEncode(rsCategories("name") & "") %></strong></td>
                         <td><%= Server.HTMLEncode(rsCategories("description") & "") %></td>
                         <td>
-                            <form action="categories.asp" method="POST" style="display:inline;" onsubmit="return confirm('Delete this category?');">
-                                <input type="hidden" name="action_type" value="delete">
-                                <input type="hidden" name="category_id" value="<%= rsCategories("id") %>">
-                                <button type="submit" class="btn btn-danger" style="padding:4px 8px; font-size:12px;">Delete</button>
-                            </form>
+                            <div style="display:inline-block; width:85px;">
+                                <form action="categories.asp" method="POST" style="margin:0;" onsubmit="return confirm('Delete this category?');">
+                                    <input type="hidden" name="action_type" value="delete">
+                                    <input type="hidden" name="category_id" value="<%= rsCategories("id") %>">
+                                    <button type="submit" class="action-btn action-btn-delete" style="padding:5px 10px; font-size:12px;">Delete</button>
+                                </form>
+                            </div>
                         </td>
                     </tr>
                 <%

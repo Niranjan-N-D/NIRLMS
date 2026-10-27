@@ -280,9 +280,13 @@ RenderHeader "Staff & User Management"
                             <code style="font-weight:700; color:#2c3e50; font-size:13.5px;"><%= Server.HTMLEncode(rsUsers("staff_number") & "") %></code>
                         </td>
                         <td style="padding:10px;">
-                            <span class="badge" style="background:<%= uBadgeBg %>; color:#fff; padding:3px 9px; border-radius:4px; font-size:11.5px; font-weight:600;">
-                                <%= CleanText(uRole) %>
-                            </span>
+                            <% If LCase(uRole) = "admin" Then %>
+                                <span class="status-pill status-pill-red" style="font-size:12px; padding:4px 14px;">Admin</span>
+                            <% ElseIf LCase(uRole) = "librarian" Then %>
+                                <span class="status-pill status-pill-purple" style="font-size:12px; padding:4px 14px;">Librarian</span>
+                            <% Else %>
+                                <span class="status-pill status-pill-blue" style="font-size:12px; padding:4px 14px;">Staff</span>
+                            <% End If %>
                         </td>
                         <td style="padding:10px;">
                             <code style="color:#2980b9; font-weight:600; font-size:13px;"><%= Server.HTMLEncode(rsUsers("dob") & "") %></code>
@@ -292,15 +296,17 @@ RenderHeader "Staff & User Management"
                         </td>
                         <td style="padding:10px; text-align:center;">
                             <% If SafeInt(rsUsers("id"), 0) = SafeInt(Session("UserId"), 0) Then %>
-                                <span style="font-size:11.5px; color:#95a5a6; font-style:italic;">(You)</span>
+                                <span class="action-text-muted" style="font-style:italic;">(You)</span>
                             <% ElseIf (Not IsAdmin()) And LCase(uRole) = "admin" Then %>
-                                <span style="font-size:11.5px; color:#95a5a6;">Protected</span>
+                                <span class="action-text-muted">Protected</span>
                             <% Else %>
-                                <form action="users.asp" method="POST" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete user \'<%= Replace(rsUsers("username") & "", "'", "\'") %>\'?');">
-                                    <input type="hidden" name="action_type" value="delete">
-                                    <input type="hidden" name="user_id" value="<%= rsUsers("id") %>">
-                                    <button type="submit" class="btn btn-danger" style="padding:4px 9px; font-size:12px; font-weight:600;">Delete</button>
-                                </form>
+                                <div style="display:inline-block; width:85px;">
+                                    <form action="users.asp" method="POST" style="margin:0;" onsubmit="return confirm('Are you sure you want to delete user \'<%= Replace(rsUsers("username") & "", "'", "\'") %>\'?');">
+                                        <input type="hidden" name="action_type" value="delete">
+                                        <input type="hidden" name="user_id" value="<%= rsUsers("id") %>">
+                                        <button type="submit" class="action-btn action-btn-delete" style="padding:5px 10px; font-size:12px;">Delete</button>
+                                    </form>
+                                </div>
                             <% End If %>
                         </td>
                     </tr>

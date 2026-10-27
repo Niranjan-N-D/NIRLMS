@@ -180,9 +180,9 @@ RenderHeader "Feedback & Reviews"
                     </div>
                     <div style="margin:4px 0;">
                         <% If rsFeedbacks("feedback_type") = "book" And Not IsNull(rsFeedbacks("book_title")) Then %>
-                            <span class="badge bg-success" style="font-size:11px;">Book Review: <%= CleanText(rsFeedbacks("book_title") & "") %></span>
+                            <span class="status-pill status-pill-green" style="font-size:12px; padding:3px 12px;">Book Review: <%= CleanText(rsFeedbacks("book_title") & "") %></span>
                         <% Else %>
-                            <span class="badge bg-warning" style="font-size:11px;">Website Feedback</span>
+                            <span class="status-pill status-pill-amber" style="font-size:12px; padding:3px 12px;">Website Feedback</span>
                         <% End If %>
                         <span style="font-size:11px; color:#95a5a6; margin-left:8px;"><%= FormatDateTime(rsFeedbacks("created_at"), 2) %></span>
                     </div>

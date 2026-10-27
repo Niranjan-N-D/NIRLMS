@@ -117,11 +117,13 @@ RenderHeader "Authors Management"
                         <td><strong><%= Server.HTMLEncode(rsAuthors("name") & "") %></strong></td>
                         <td><%= Server.HTMLEncode(rsAuthors("bio") & "") %></td>
                         <td>
-                            <form action="authors.asp" method="POST" style="display:inline;" onsubmit="return confirm('Delete this author?');">
-                                <input type="hidden" name="action_type" value="delete">
-                                <input type="hidden" name="author_id" value="<%= rsAuthors("id") %>">
-                                <button type="submit" class="btn btn-danger" style="padding:4px 8px; font-size:12px;">Delete</button>
-                            </form>
+                            <div style="display:inline-block; width:85px;">
+                                <form action="authors.asp" method="POST" style="margin:0;" onsubmit="return confirm('Delete this author?');">
+                                    <input type="hidden" name="action_type" value="delete">
+                                    <input type="hidden" name="author_id" value="<%= rsAuthors("id") %>">
+                                    <button type="submit" class="action-btn action-btn-delete" style="padding:5px 10px; font-size:12px;">Delete</button>
+                                </form>
+                            </div>
                         </td>
                     </tr>
                 <%

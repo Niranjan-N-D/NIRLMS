@@ -150,11 +150,11 @@ RenderHeader "Dashboard"
                         <td><%= FormatDateTime(rsRecent("due_date"), 2) %></td>
                         <td>
                             <% If isOver Then %>
-                                <span class="badge bg-danger">🚨 OVERDUE (Day 16+)</span>
+                                <span class="status-pill status-pill-red">🚨 Overdue</span>
                             <% ElseIf dStatus = "Returned" Then %>
-                                <span class="badge bg-success">Returned</span>
+                                <span class="status-pill status-pill-green">Returned</span>
                             <% Else %>
-                                <span class="badge bg-warning">Borrowed</span>
+                                <span class="status-pill status-pill-amber">Borrowed</span>
                             <% End If %>
                         </td>
                     </tr>
@@ -232,11 +232,11 @@ RenderHeader "Dashboard"
                         <td><%= FormatDateTime(rsRecent("due_date"), 2) %></td>
                         <td>
                             <% If mIsOver Then %>
-                                <span class="badge bg-danger">🚨 OVERDUE</span>
+                                <span class="status-pill status-pill-red">🚨 Overdue</span>
                             <% ElseIf mStatus = "Returned" Then %>
-                                <span class="badge bg-success">Returned</span>
+                                <span class="status-pill status-pill-green">Returned</span>
                             <% Else %>
-                                <span class="badge bg-warning">Borrowed</span>
+                                <span class="status-pill status-pill-amber">Borrowed</span>
                             <% End If %>
                         </td>
                     </tr>

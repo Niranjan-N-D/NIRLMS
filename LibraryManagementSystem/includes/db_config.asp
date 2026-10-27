@@ -383,6 +383,106 @@ Sub RenderHeader(pageTitle)
         .bg-success { background: #2ecc71; }
         .bg-danger { background: #e74c3c; }
         .bg-warning { background: #f39c12; }
+
+        /* Unified Consistent Status Pills (Matches Design Spec) */
+        .status-pill {
+            display: inline-block;
+            padding: 7px 18px;
+            border-radius: 20px;
+            font-size: 13.5px;
+            font-weight: 700;
+            line-height: 1.2;
+            text-align: center;
+            white-space: nowrap;
+        }
+        .status-pill-green, .status-pill-available, .status-pill-returned, .status-pill-approved {
+            background-color: #d3f9d8;
+            color: #2b8a3e;
+        }
+        .status-pill-solid-green {
+            background-color: #27ae60;
+            color: #ffffff;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .status-pill-amber, .status-pill-pending, .status-pill-borrowed, .status-pill-loaned {
+            background-color: #ffe8cc;
+            color: #d9480f;
+        }
+        .status-pill-blue, .status-pill-collected, .status-pill-issued, .status-pill-circulation, .status-pill-staff {
+            background-color: #d0ebff;
+            color: #1971c2;
+        }
+        .status-pill-red, .status-pill-rejected, .status-pill-expired, .status-pill-overdue, .status-pill-out, .status-pill-admin {
+            background-color: #ffe3e3;
+            color: #c92a2a;
+        }
+        .status-pill-purple, .status-pill-librarian {
+            background-color: #f3d9fa;
+            color: #9c36b5;
+        }
+        .status-pill-gray {
+            background-color: #e9ecef;
+            color: #495057;
+        }
+        .status-subtext {
+            font-size: 13.5px;
+            font-weight: 500;
+            color: #576574;
+            margin-top: 6px;
+            letter-spacing: 0.2px;
+        }
+
+        /* Unified Vertical Action Button Stack (Matches Design Spec) */
+        .action-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            width: 120px;
+        }
+        .action-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            width: 100%;
+            padding: 7px 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 700;
+            color: #ffffff !important;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            box-sizing: border-box;
+            transition: opacity 0.15s ease, transform 0.1s ease;
+            text-align: center;
+            line-height: 1.2;
+        }
+        .action-btn:hover {
+            opacity: 0.92;
+            transform: translateY(-1px);
+        }
+        .action-btn-review, .btn-act-review {
+            background-color: #f39c12;
+        }
+        .action-btn-edit, .btn-act-edit, .action-btn-primary {
+            background-color: #3498db;
+        }
+        .action-btn-delete, .btn-act-delete, .action-btn-reject {
+            background-color: #e74c3c;
+        }
+        .action-btn-request, .btn-act-request, .action-btn-approve, .action-btn-return {
+            background-color: #2ecc71;
+        }
+        .action-btn-reserve {
+            background-color: #e67e22;
+        }
+        .action-text-muted {
+            color: #868e96;
+            font-size: 13.5px;
+            font-weight: 600;
+        }
+
         .form-group { margin-bottom: 15px; }
         .form-group label { display: block; margin-bottom: 5px; font-weight: 600; }
         .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 8px 12px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; }
