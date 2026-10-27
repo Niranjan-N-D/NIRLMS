@@ -35,6 +35,87 @@ On Error GoTo 0
 RenderHeader IIf(IsStaff(), "Book Catalog & Inventory", "Browse & Request Books")
 %>
 
+<style>
+/* Status Badge Pill & Subtext (Exact User Spec Match) */
+.status-pill-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+.status-pill {
+    display: inline-block;
+    padding: 7px 20px;
+    border-radius: 24px;
+    font-size: 15px;
+    font-weight: 700;
+    color: #ffffff;
+    line-height: 1.2;
+    text-align: center;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+.status-pill-available {
+    background-color: #27ae60;
+}
+.status-pill-loaned {
+    background-color: #f39c12;
+}
+.status-pill-out {
+    background-color: #e74c3c;
+}
+.status-subtext {
+    font-size: 13.5px;
+    font-weight: 500;
+    color: #576574;
+    margin-top: 6px;
+    letter-spacing: 0.2px;
+}
+
+/* Action Button Vertical Stack (Exact User Spec Match) */
+.action-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    width: 125px;
+}
+.action-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    padding: 7px 12px;
+    border-radius: 7px;
+    font-size: 13.5px;
+    font-weight: 700;
+    color: #ffffff !important;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    box-sizing: border-box;
+    transition: opacity 0.15s ease, transform 0.1s ease;
+    text-align: center;
+}
+.action-btn:hover {
+    opacity: 0.92;
+    transform: translateY(-1px);
+}
+.btn-act-review {
+    background-color: #f39c12;
+}
+.btn-act-edit {
+    background-color: #3498db;
+}
+.btn-act-delete {
+    background-color: #e74c3c;
+}
+.btn-act-request {
+    background-color: #2ecc71;
+}
+.btn-act-reserve {
+    background-color: #e67e22;
+}
+</style>
+
 <div class="card">
     <div class="card-header" style="display:flex; justify-content:space-between; align-items:center;">
         <h2 style="margin:0; color:#2c3e50;"><%= IIf(IsStaff(), "Book Catalog & Inventory", "Browse & Request Books") %></h2>
@@ -62,8 +143,8 @@ RenderHeader IIf(IsStaff(), "Book Catalog & Inventory", "Browse & Request Books"
                 <th>ISBN</th>
                 <th>Price (&#8377;)</th>
                 <th>Rating</th>
-                <th>Status / Inventory</th>
-                <th>Action</th>
+                <th style="min-width:160px;">Status</th>
+                <th style="width:135px; text-align:center;">Action</th>
             </tr>
         </thead>
         <tbody>
@@ -88,20 +169,20 @@ RenderHeader IIf(IsStaff(), "Book Catalog & Inventory", "Browse & Request Books"
                         starStr = "<span style='color:#95a5a6; font-size:12px;'>No reviews</span>"
                     End If
 
-                    ' Clean & Simple Status and Inventory Indication
+                    ' Clean Status Pill & Subtext (Matches Screenshot)
                     If availCopies > 0 Then
-                        statusBadgeHtml = "<span class='badge bg-success'>Available (" & availCopies & ")</span>"
+                        statusBadgeHtml = "<span class='status-pill status-pill-available'>Available (" & availCopies & ")</span>"
                         If borrowedCopies > 0 Then
-                            statusSubtextHtml = "<div style='font-size:11.5px; color:#7f8c8d; margin-top:3px;'>" & borrowedCopies & " borrowed &bull; " & totalBookCopies & " total</div>"
+                            statusSubtextHtml = "<div class='status-subtext'>" & borrowedCopies & " borrowed &bull; " & totalBookCopies & " total</div>"
                         Else
-                            statusSubtextHtml = "<div style='font-size:11.5px; color:#7f8c8d; margin-top:3px;'>" & totalBookCopies & " in stock</div>"
+                            statusSubtextHtml = "<div class='status-subtext'>" & totalBookCopies & " in stock</div>"
                         End If
                     ElseIf borrowedCopies > 0 Then
-                        statusBadgeHtml = "<span class='badge bg-warning'>Loaned Out (" & borrowedCopies & ")</span>"
-                        statusSubtextHtml = "<div style='font-size:11.5px; color:#e67e22; margin-top:3px;'>All copies on loan</div>"
+                        statusBadgeHtml = "<span class='status-pill status-pill-loaned'>Loaned Out (" & borrowedCopies & ")</span>"
+                        statusSubtextHtml = "<div class='status-subtext'>" & borrowedCopies & " borrowed &bull; " & totalBookCopies & " total</div>"
                     Else
-                        statusBadgeHtml = "<span class='badge bg-danger'>Out of Stock</span>"
-                        statusSubtextHtml = "<div style='font-size:11.5px; color:#95a5a6; margin-top:3px;'>0 copies</div>"
+                        statusBadgeHtml = "<span class='status-pill status-pill-out'>Out of Stock</span>"
+                        statusSubtextHtml = "<div class='status-subtext'>0 copies available</div>"
                     End If
             %>
                 <tr>
@@ -113,27 +194,29 @@ RenderHeader IIf(IsStaff(), "Book Catalog & Inventory", "Browse & Request Books"
                     <td><strong style="color:#27ae60;">&#8377;<%= FormatNumber(SafeFloat(rs("price"), 0), 2) %></strong></td>
                     <td><%= starStr %></td>
                     <td>
-                        <%= statusBadgeHtml %>
-                        <%= statusSubtextHtml %>
+                        <div class="status-pill-wrap">
+                            <%= statusBadgeHtml %>
+                            <%= statusSubtextHtml %>
+                        </div>
                     </td>
                     <td>
-                        <div style="display:flex; gap:5px; flex-wrap:wrap;">
+                        <div class="action-stack">
                             <% If HasPermission("feedback") Then %>
-                                <a href="feedback.asp?book_id=<%= rs("id") %>" class="btn btn-warning" style="padding:4px 8px; font-size:12px;" title="Write Review">⭐ Review</a>
+                                <a href="feedback.asp?book_id=<%= rs("id") %>" class="action-btn btn-act-review" title="Write Review">★ Review</a>
                             <% End If %>
 
                             <% If IsStaff() Then %>
-                                <a href="books_edit.asp?id=<%= rs("id") %>" class="btn btn-primary" style="padding:4px 8px; font-size:12px;">Edit</a>
-                                <a href="books_delete.asp?id=<%= rs("id") %>" class="btn btn-danger" style="padding:4px 8px; font-size:12px;" onclick="return confirm('Delete this book?');">Delete</a>
+                                <a href="books_edit.asp?id=<%= rs("id") %>" class="action-btn btn-act-edit">Edit</a>
+                                <a href="books_delete.asp?id=<%= rs("id") %>" class="action-btn btn-act-delete" onclick="return confirm('Delete this book?');">Delete</a>
                             <% End If %>
 
                             <% If availCopies > 0 Then %>
                                 <% If HasPermission("requests") Then %>
-                                    <a href="request_book.asp?id=<%= rs("id") %>" class="btn btn-success" style="padding:4px 8px; font-size:12px;">Request Book</a>
+                                <a href="request_book.asp?id=<%= rs("id") %>" class="action-btn btn-act-request">Request Book</a>
                                 <% End If %>
                             <% ElseIf totalBookCopies > 0 Then %>
                                 <% If HasPermission("requests") Then %>
-                                    <a href="request_book.asp?id=<%= rs("id") %>" class="btn btn-secondary" style="padding:4px 8px; font-size:12px;" title="Reserve when returned">Reserve</a>
+                                <a href="request_book.asp?id=<%= rs("id") %>" class="action-btn btn-act-reserve" title="Reserve when returned">Reserve</a>
                                 <% End If %>
                             <% End If %>
                         </div>
