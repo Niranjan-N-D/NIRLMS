@@ -40,17 +40,35 @@ If Request.ServerVariables("REQUEST_METHOD") = "POST" Then
                 todayStr = Year(Now) & "-" & Right("0" & Month(Now), 2) & "-" & Right("0" & Day(Now), 2)
                 dueStr = Year(DateAdd("d", days, Now)) & "-" & Right("0" & Month(DateAdd("d", days, Now)), 2) & "-" & Right("0" & Day(DateAdd("d", days, Now)), 2)
 
-                insertSql = "INSERT INTO Borrowings (book_id, user_id, borrow_date, due_date, status) VALUES (" & _
-                            bookId & ", " & userId & ", " & SQLQuote(todayStr) & ", " & SQLQuote(dueStr) & ", 'Borrowed')"
+                Dim rowsUpdated
+                rowsUpdated = 0
 
                 On Error Resume Next
-                conn.Execute(insertSql)
-                ' Decrease copy count
-                conn.Execute("UPDATE Books SET copies_available = copies_available - 1 WHERE id = " & bookId & " AND copies_available > 0")
-                If Err.Number <> 0 Then
-                    errorMessage = "Issue Book Error: " & Err.Description
+                conn.BeginTrans
+
+                ' 1. Atomic SQL Decrement (only if copies_available > 0 and not soft-deleted)
+                conn.Execute "UPDATE Books SET copies_available = copies_available - 1, is_available = CASE WHEN copies_available - 1 <= 0 THEN 0 ELSE 1 END WHERE id = " & bookId & " AND copies_available > 0 AND COALESCE(is_deleted, 0) = 0", rowsUpdated
+
+                If Err.Number <> 0 Or rowsUpdated = 0 Then
+                    conn.RollbackTrans
+                    If rowsUpdated = 0 Then
+                        errorMessage = "Cannot issue book: No physical copies currently available in library inventory."
+                    Else
+                        errorMessage = "Issue Book Error: " & Err.Description
+                    End If
                 Else
-                    successMessage = "Book issued successfully for " & days & " days."
+                    ' 2. Insert Borrowing Record inside transaction
+                    insertSql = "INSERT INTO Borrowings (book_id, user_id, borrow_date, due_date, status) VALUES (" & _
+                                bookId & ", " & userId & ", " & SQLQuote(todayStr) & ", " & SQLQuote(dueStr) & ", 'Borrowed')"
+                    conn.Execute insertSql
+
+                    If Err.Number <> 0 Then
+                        conn.RollbackTrans
+                        errorMessage = "Issue Book Transaction Failed: " & Err.Description
+                    Else
+                        conn.CommitTrans
+                        successMessage = "Book issued successfully for " & days & " days."
+                    End If
                 End If
                 On Error GoTo 0
             End If
@@ -60,16 +78,36 @@ If Request.ServerVariables("REQUEST_METHOD") = "POST" Then
             If borrowId > 0 Then
                 retDateStr = Year(Now) & "-" & Right("0" & Month(Now), 2) & "-" & Right("0" & Day(Now), 2)
 
+                Dim retRows, retBookId
+                retRows = 0
+
                 On Error Resume Next
-                ' Update borrowing status
-                conn.Execute("UPDATE Borrowings SET status = 'Returned', return_date = " & SQLQuote(retDateStr) & " WHERE id = " & borrowId)
-                
-                ' Increment available book copy count
-                conn.Execute("UPDATE Books SET copies_available = copies_available + 1 WHERE id = (SELECT book_id FROM Borrowings WHERE id = " & borrowId & ")")
-                If Err.Number <> 0 Then
-                    errorMessage = "Return Book Error: " & Err.Description
+                conn.BeginTrans
+
+                ' Fetch book_id and ensure borrowing is currently active ('Borrowed' or 'Overdue')
+                Dim rsBorrowCheck
+                Set rsBorrowCheck = conn.Execute("SELECT book_id FROM Borrowings WHERE id = " & borrowId & " AND status IN ('Borrowed', 'Overdue')")
+                If rsBorrowCheck Is Nothing Or rsBorrowCheck.State = 0 Or rsBorrowCheck.EOF Then
+                    conn.RollbackTrans
+                    errorMessage = "This borrowing record has already been marked as returned or does not exist."
                 Else
-                    successMessage = "Book returned successfully."
+                    retBookId = rsBorrowCheck("book_id")
+                    rsBorrowCheck.Close
+                    Set rsBorrowCheck = Nothing
+
+                    ' 1. Mark borrowing record as Returned inside transaction
+                    conn.Execute "UPDATE Borrowings SET status = 'Returned', return_date = " & SQLQuote(retDateStr) & " WHERE id = " & borrowId & " AND status IN ('Borrowed', 'Overdue')", retRows
+
+                    ' 2. Increment book available copies and set is_available = 1
+                    conn.Execute "UPDATE Books SET copies_available = copies_available + 1, is_available = 1 WHERE id = " & retBookId
+
+                    If Err.Number <> 0 Or retRows = 0 Then
+                        conn.RollbackTrans
+                        errorMessage = "Return Book Transaction Failed: " & Err.Description
+                    Else
+                        conn.CommitTrans
+                        successMessage = "Book returned successfully and inventory updated."
+                    End If
                 End If
                 On Error GoTo 0
             End If
@@ -79,8 +117,8 @@ End If
 
 ' Fetch Available Books & Users for Select Dropdowns (Staff view)
 If IsStaff() Then
-    Set rsBooks = conn.Execute("SELECT b.id, b.title, b.isbn, b.copies_available, COALESCE(a.name, 'Various') AS author_name FROM Books b LEFT JOIN Authors a ON b.author_id = a.id WHERE b.copies_available > 0 ORDER BY b.title ASC")
-    Set rsUsers = conn.Execute("SELECT id, username, email, COALESCE(staff_number, '') AS staff_number, role FROM Users ORDER BY username ASC")
+    Set rsBooks = conn.Execute("SELECT b.id, b.title, b.isbn, b.copies_available, COALESCE(a.name, 'Various') AS author_name FROM Books b LEFT JOIN Authors a ON b.author_id = a.id WHERE b.copies_available > 0 AND COALESCE(b.is_deleted, 0) = 0 ORDER BY b.title ASC")
+    Set rsUsers = conn.Execute("SELECT id, username, email, COALESCE(staff_number, '') AS staff_number, role FROM Users WHERE COALESCE(is_deleted, 0) = 0 ORDER BY username ASC")
 End If
 
 ' Fetch Borrowing Records List

@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS Users (
     role VARCHAR(50) DEFAULT 'Staff',
     staff_number VARCHAR(50) DEFAULT '9876543210',
     staff_internal_number VARCHAR(50) DEFAULT 'BEL-EXT-101',
+    sbu VARCHAR(100) DEFAULT 'General',
     dob VARCHAR(20) DEFAULT '15-08-1985',
     perm_books TINYINT(1) DEFAULT 1,
     perm_requests TINYINT(1) DEFAULT 1,
@@ -22,6 +23,7 @@ CREATE TABLE IF NOT EXISTS Users (
     perm_authors TINYINT(1) DEFAULT 0,
     perm_categories TINYINT(1) DEFAULT 0,
     perm_feedback TINYINT(1) DEFAULT 1,
+    is_deleted TINYINT(1) DEFAULT 0,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -30,6 +32,7 @@ CREATE TABLE IF NOT EXISTS Authors (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(150) NOT NULL,
     bio TEXT,
+    is_deleted TINYINT(1) DEFAULT 0,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -38,6 +41,7 @@ CREATE TABLE IF NOT EXISTS Categories (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     description TEXT,
+    is_deleted TINYINT(1) DEFAULT 0,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -52,6 +56,7 @@ CREATE TABLE IF NOT EXISTS Books (
     copies_available INT DEFAULT 1,
     is_available TINYINT(1) DEFAULT 1,
     price DOUBLE DEFAULT 350.00,
+    is_deleted TINYINT(1) DEFAULT 0,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (author_id) REFERENCES Authors(id) ON DELETE SET NULL,
     FOREIGN KEY (category_id) REFERENCES Categories(id) ON DELETE SET NULL
@@ -138,13 +143,13 @@ DELIMITER ;
 -- ====================================================================
 
 -- 1. Users (Password is Date of Birth - DOB)
-INSERT INTO Users (id, username, email, password_hash, dob, role, staff_number, staff_internal_number, perm_books, perm_requests, perm_borrowings, perm_authors, perm_categories, perm_feedback) VALUES
-(1, 'Admin User', 'admin@bel.com', '15-08-1985', '15-08-1985', 'Admin', '9876543210', 'BEL-ADM-001', 1, 1, 1, 1, 1, 1),
-(2, 'Librarian Sarah', 'librarian@bel.com', '20-05-1992', '20-05-1992', 'Librarian', '9876543211', 'BEL-LIB-002', 1, 1, 1, 1, 1, 1),
-(3, 'Rajesh Kumar', 'rajesh.k@bel.com', '10-10-1995', '10-10-1995', 'Staff', '9876543212', 'BEL-ENG-201', 1, 1, 1, 0, 0, 1),
-(4, 'Priya Sharma', 'priya.s@bel.com', '12-12-1996', '12-12-1996', 'Staff', '9876543213', 'BEL-ENG-202', 1, 1, 1, 0, 0, 1),
-(5, 'Ramesh Rao', 'ramesh.r@bel.com', '04-07-1993', '04-07-1993', 'Staff', '9876543214', 'BEL-RAD-301', 1, 1, 1, 0, 0, 1),
-(6, 'Anita Desai', 'anita.d@bel.com', '25-01-1998', '25-01-1998', 'Staff', '9876543215', 'BEL-RES-401', 1, 1, 1, 0, 0, 1)
+INSERT INTO Users (id, username, email, password_hash, dob, role, staff_number, staff_internal_number, sbu, perm_books, perm_requests, perm_borrowings, perm_authors, perm_categories, perm_feedback) VALUES
+(1, 'Admin User', 'admin@bel.com', '15-08-1985', '15-08-1985', 'Admin', '9876543210', 'BEL-ADM-001', 'Central HR', 1, 1, 1, 1, 1, 1),
+(2, 'Librarian Sarah', 'librarian@bel.com', '20-05-1992', '20-05-1992', 'Librarian', '9876543211', 'BEL-LIB-002', 'Library / HR', 1, 1, 1, 1, 1, 1),
+(3, 'Rajesh Kumar', 'rajesh.k@bel.com', '10-10-1995', '10-10-1995', 'Staff', '9876543212', 'BEL-ENG-201', 'Radar SBU', 1, 1, 1, 0, 0, 1),
+(4, 'Priya Sharma', 'priya.s@bel.com', '12-12-1996', '12-12-1996', 'Staff', '9876543213', 'BEL-ENG-202', 'MilCom SBU', 1, 1, 1, 0, 0, 1),
+(5, 'Ramesh Rao', 'ramesh.r@bel.com', '04-07-1993', '04-07-1993', 'Staff', '9876543214', 'BEL-RAD-301', 'Naval Systems', 1, 1, 1, 0, 0, 1),
+(6, 'Anita Desai', 'anita.d@bel.com', '25-01-1998', '25-01-1998', 'Staff', '9876543215', 'BEL-RES-401', 'CRL (Research)', 1, 1, 1, 0, 0, 1)
 ON DUPLICATE KEY UPDATE username=VALUES(username), role=VALUES(role), password_hash=VALUES(password_hash), dob=VALUES(dob);
 
 -- 2. Authors

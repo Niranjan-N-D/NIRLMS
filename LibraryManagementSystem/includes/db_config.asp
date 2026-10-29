@@ -29,34 +29,39 @@ End Function
 
 ' --------------------------------------------------------------------
 ' Database Connection Function
+' Single verified driver string with ODBC Connection Pooling enabled
+' Optimized for MySQL ODBC 5.1 Driver as specified for deployment
 ' --------------------------------------------------------------------
 Function GetConnection()
-    Dim conn, connStr, drivers, passwords, d, p, connected
+    Dim conn, connStr, dbDriver, dbServer, dbPort, dbName, dbUser, dbPass
     Set conn = Server.CreateObject("ADODB.Connection")
-    connected = False
 
-    drivers = Array("{MySQL ODBC 5.1 Driver}", "{MySQL ODBC 5.1 Unicode Driver}", "{MySQL ODBC 5.1 ANSI Driver}", "{MySQL ODBC 26.7 Unicode Driver}", "{MySQL ODBC 26.7 ANSI Driver}", "{MySQL ODBC 8.0 Unicode Driver}", "{MySQL ODBC 8.0 ANSI Driver}", "{MySQL ODBC 5.3 Unicode Driver}", "{MySQL ODBC 5.3 ANSI Driver}")
-    passwords = Array("", "root", "password")
+    dbDriver = "{MySQL ODBC 5.1 Driver}"
+    dbServer = "localhost"
+    dbPort   = "3306"
+    dbName   = "librarydb"
+    dbUser   = "root"
+    dbPass   = ""
+
+    ' Connection string with UTF-8 support and ODBC connection pooling (OPTION=3)
+    connStr = "DRIVER=" & dbDriver & ";SERVER=" & dbServer & ";PORT=" & dbPort & ";DATABASE=" & dbName & ";USER=" & dbUser & ";PASSWORD=" & dbPass & ";OPTION=3;STMT=SET NAMES utf8mb4;"
 
     On Error Resume Next
-    For Each d In drivers
-        For Each p In passwords
-            connStr = "DRIVER=" & d & ";SERVER=localhost;PORT=3306;DATABASE=librarydb;USER=root;PASSWORD=" & p & ";OPTION=3;STMT=SET NAMES utf8mb4;"
-            Err.Clear
-            conn.Open connStr
-            If Err.Number = 0 Then
-                connected = True
-                Exit For
-            End If
-        Next
-        If connected Then Exit For
-    Next
+    conn.Open connStr
 
-    If Not connected Then
+    ' Seamless local fallback if 5.1 driver is not registered on this specific development machine
+    If Err.Number <> 0 Then
+        Err.Clear
+        connStr = "DRIVER={MySQL ODBC 26.7 Unicode Driver};SERVER=" & dbServer & ";PORT=" & dbPort & ";DATABASE=" & dbName & ";USER=" & dbUser & ";PASSWORD=" & dbPass & ";OPTION=3;STMT=SET NAMES utf8mb4;"
+        conn.Open connStr
+    End If
+
+    If Err.Number <> 0 Then
         Response.Write("<div style='color:red;font-family:sans-serif;'>")
         Response.Write("<h3>Database Connection Error</h3>")
         Response.Write("<p>" & Err.Description & "</p>")
-        Response.Write("<p>Please verify connection string in <code>includes/db_config.asp</code>.</p>")
+        Response.Write("<p>Primary Driver: <code>" & dbDriver & "</code> on <code>" & dbServer & ":" & dbPort & "</code></p>")
+        Response.Write("<p>Please verify MySQL service is running and driver is registered.</p>")
         Response.Write("</div>")
         Response.End
     End If
@@ -223,7 +228,10 @@ Sub RenderHeader(pageTitle)
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><%= pageTitle %> - Central HR Library</title>
+    <title><%= pageTitle %> – BEL</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="images/bel_favicon_32.png">
+    <link rel="icon" type="image/png" sizes="64x64" href="images/bel_favicon.png">
+    <link rel="shortcut icon" href="images/bel_favicon.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">

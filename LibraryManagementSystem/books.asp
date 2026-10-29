@@ -49,10 +49,10 @@ sql = "SELECT b.id, b.title, b.isbn, b.publisher, b.price, b.copies_available, b
       "LEFT JOIN Categories c ON b.category_id = c.id "
 
 Dim whereParts
-whereParts = ""
+whereParts = "COALESCE(b.is_deleted, 0) = 0"
 
 If categoryId > 0 Then
-    whereParts = "b.category_id = " & categoryId
+    whereParts = whereParts & " AND b.category_id = " & categoryId
 End If
 
 If searchKeyword <> "" Then
@@ -61,16 +61,10 @@ If searchKeyword <> "" Then
              " OR b.isbn LIKE " & SQLQuote("%" & searchKeyword & "%") & _
              " OR a.name LIKE " & SQLQuote("%" & searchKeyword & "%") & _
              " OR c.name LIKE " & SQLQuote("%" & searchKeyword & "%") & ")"
-    If whereParts <> "" Then
-        whereParts = whereParts & " AND " & kwCond
-    Else
-        whereParts = kwCond
-    End If
+    whereParts = whereParts & " AND " & kwCond
 End If
 
-If whereParts <> "" Then
-    sql = sql & "WHERE " & whereParts & " "
-End If
+sql = sql & "WHERE " & whereParts & " "
 
 sql = sql & "ORDER BY b.id DESC"
 

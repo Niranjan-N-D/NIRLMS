@@ -40,18 +40,19 @@ If Request.ServerVariables("REQUEST_METHOD") = "POST" Then
         categoryId = SafeInt(Request.Form("category_id"), 0)
         If categoryId > 0 Then
             On Error Resume Next
-            conn.Execute("DELETE FROM Categories WHERE id = " & categoryId)
+            ' Soft delete: preserves category reference on historical records and audit trail
+            conn.Execute("UPDATE Categories SET is_deleted = 1 WHERE id = " & categoryId)
             If Err.Number <> 0 Then
                 errorMessage = "Failed to delete category: " & Err.Description
             Else
-                successMessage = "Category deleted successfully."
+                successMessage = "Category deleted successfully (audit history preserved)."
             End If
             On Error GoTo 0
         End If
     End If
 End If
 
-' Fetch Categories List with Book Counts & Available Copies
+' Fetch Active Categories List with Book Counts & Available Copies
 Dim rsCategories, totalCategoriesCount, totalBooksInAll, totalAvailableInAll
 totalCategoriesCount = 0
 totalBooksInAll = 0
@@ -62,7 +63,8 @@ catSql = "SELECT c.id, c.name, c.description, " & _
          "COUNT(b.id) AS total_books, " & _
          "COALESCE(SUM(b.copies_available), 0) AS total_available " & _
          "FROM Categories c " & _
-         "LEFT JOIN Books b ON c.id = b.category_id " & _
+         "LEFT JOIN Books b ON c.id = b.category_id AND COALESCE(b.is_deleted, 0) = 0 " & _
+         "WHERE COALESCE(c.is_deleted, 0) = 0 " & _
          "GROUP BY c.id, c.name, c.description " & _
          "ORDER BY c.name ASC"
 

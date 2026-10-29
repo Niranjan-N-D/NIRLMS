@@ -18,6 +18,8 @@ Set conn = GetConnection()
 ' --------------------------------------------------------------------
 ' Auto-Cleanup: Expire approved requests older than 48 hours & restore book copy
 ' --------------------------------------------------------------------
+' Auto-Expire Approved Requests Past 48 Hours with Transaction & Inventory Restore
+' --------------------------------------------------------------------
 On Error Resume Next
 Set rsExpired = conn.Execute("SELECT id, book_id FROM BookRequests WHERE status = 'Approved' AND approved_at IS NOT NULL AND approved_at < NOW() - INTERVAL 48 HOUR")
 If Not (rsExpired Is Nothing Or rsExpired.State = 0) Then
@@ -25,10 +27,17 @@ If Not (rsExpired Is Nothing Or rsExpired.State = 0) Then
         expReqId = rsExpired("id")
         expBookId = rsExpired("book_id")
         
+        conn.BeginTrans
         ' 1. Restore book inventory copy
-        conn.Execute("UPDATE Books SET copies_available = copies_available + 1 WHERE id = " & expBookId)
+        conn.Execute "UPDATE Books SET copies_available = copies_available + 1, is_available = 1 WHERE id = " & expBookId
         ' 2. Mark request as Expired
-        conn.Execute("UPDATE BookRequests SET status = 'Expired' WHERE id = " & expReqId)
+        conn.Execute "UPDATE BookRequests SET status = 'Expired' WHERE id = " & expReqId & " AND status = 'Approved'"
+        
+        If Err.Number = 0 Then
+            conn.CommitTrans
+        Else
+            conn.RollbackTrans
+        End If
         
         rsExpired.MoveNext
     Loop
@@ -58,33 +67,53 @@ If Request.ServerVariables("REQUEST_METHOD") = "POST" Then
                 reqEnd = rsReq("end_date")
 
                 If actionType = "approve" Then
+                    Dim appRows
+                    appRows = 0
+
                     On Error Resume Next
-                    ' 1. Decrement available book copy (reserve for 48h)
-                    conn.Execute("UPDATE Books SET copies_available = copies_available - 1 WHERE id = " & reqBookId & " AND copies_available > 0")
+                    conn.BeginTrans
 
-                    ' 2. Update Request status to Approved with timestamp
-                    conn.Execute("UPDATE BookRequests SET status = 'Approved', approved_at = NOW() WHERE id = " & requestId)
+                    ' 1. Atomic Decrement of available book copy (reserve for 48h)
+                    conn.Execute "UPDATE Books SET copies_available = copies_available - 1, is_available = CASE WHEN copies_available - 1 <= 0 THEN 0 ELSE 1 END WHERE id = " & reqBookId & " AND copies_available > 0 AND COALESCE(is_deleted, 0) = 0", appRows
 
-                    If Err.Number <> 0 Then
-                        errorMessage = "Error approving request: " & Err.Description
+                    If Err.Number <> 0 Or appRows = 0 Then
+                        conn.RollbackTrans
+                        If appRows = 0 Then
+                            errorMessage = "Cannot approve request: No physical copies currently available in library inventory."
+                        Else
+                            errorMessage = "Error approving request: " & Err.Description
+                        End If
                     Else
-                        successMessage = "Book request approved! Staff member has 48 hours to collect the book."
+                        ' 2. Update Request status to Approved with timestamp
+                        conn.Execute "UPDATE BookRequests SET status = 'Approved', approved_at = NOW() WHERE id = " & requestId & " AND status = 'Pending'"
+
+                        If Err.Number <> 0 Then
+                            conn.RollbackTrans
+                            errorMessage = "Error approving request: " & Err.Description
+                        Else
+                            conn.CommitTrans
+                            successMessage = "Book request approved! Staff member has 48 hours to collect the book."
+                        End If
                     End If
                     On Error GoTo 0
 
                 ElseIf actionType = "collect" Then
                     On Error Resume Next
+                    conn.BeginTrans
+
                     ' 1. Create Borrowing record upon collection
                     insertBorrowSql = "INSERT INTO Borrowings (book_id, user_id, borrow_date, due_date, status) VALUES (" & _
                                       reqBookId & ", " & reqUserId & ", " & FormatSQLDate(reqStart) & ", " & FormatSQLDate(reqEnd) & ", 'Borrowed')"
-                    conn.Execute(insertBorrowSql)
+                    conn.Execute insertBorrowSql
 
                     ' 2. Update Request status to Collected
-                    conn.Execute("UPDATE BookRequests SET status = 'Collected' WHERE id = " & requestId)
+                    conn.Execute "UPDATE BookRequests SET status = 'Collected' WHERE id = " & requestId & " AND status = 'Approved'"
 
                     If Err.Number <> 0 Then
+                        conn.RollbackTrans
                         errorMessage = "Error processing collection: " & Err.Description
                     Else
+                        conn.CommitTrans
                         successMessage = "Book successfully collected! Borrowing transaction issued."
                     End If
                     On Error GoTo 0

@@ -21,7 +21,7 @@ If Request.ServerVariables("REQUEST_METHOD") = "POST" Then
         Dim conn, rs, sql
         Set conn = GetConnection()
 
-        sql = "SELECT id, email, username, role, staff_number, staff_internal_number, password_hash, dob, perm_books, perm_requests, perm_borrowings, perm_authors, perm_categories, perm_feedback FROM Users WHERE staff_number = " & SQLQuote(staffNumber) & " OR staff_internal_number = " & SQLQuote(staffNumber) & " OR email = " & SQLQuote(staffNumber) & " OR username = " & SQLQuote(staffNumber)
+        sql = "SELECT id, email, username, role, staff_number, staff_internal_number, password_hash, dob, perm_books, perm_requests, perm_borrowings, perm_authors, perm_categories, perm_feedback FROM Users WHERE (staff_number = " & SQLQuote(staffNumber) & " OR staff_internal_number = " & SQLQuote(staffNumber) & " OR email = " & SQLQuote(staffNumber) & " OR username = " & SQLQuote(staffNumber) & ") AND COALESCE(is_deleted, 0) = 0"
         Set rs = Server.CreateObject("ADODB.Recordset")
         
         On Error Resume Next
@@ -110,7 +110,10 @@ End If
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Central HR Library - BEL BG Complex</title>
+    <title>Central HR Library – BEL</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="images/bel_favicon_32.png">
+    <link rel="icon" type="image/png" sizes="64x64" href="images/bel_favicon.png">
+    <link rel="shortcut icon" href="images/bel_favicon.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">

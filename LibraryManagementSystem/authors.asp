@@ -40,20 +40,21 @@ If Request.ServerVariables("REQUEST_METHOD") = "POST" Then
         authorId = SafeInt(Request.Form("author_id"), 0)
         If authorId > 0 Then
             On Error Resume Next
-            conn.Execute("DELETE FROM Authors WHERE id = " & authorId)
+            ' Soft delete: preserves author reference on historical books and audit trails
+            conn.Execute("UPDATE Authors SET is_deleted = 1 WHERE id = " & authorId)
             If Err.Number <> 0 Then
                 errorMessage = "Failed to delete author: " & Err.Description
             Else
-                successMessage = "Author deleted successfully."
+                successMessage = "Author deleted successfully (audit history preserved)."
             End If
             On Error GoTo 0
         End If
     End If
 End If
 
-' Fetch Authors List
+' Fetch Active Authors List
 Dim rsAuthors
-Set rsAuthors = conn.Execute("SELECT id, name, bio FROM Authors ORDER BY name ASC")
+Set rsAuthors = conn.Execute("SELECT id, name, bio FROM Authors WHERE COALESCE(is_deleted, 0) = 0 ORDER BY name ASC")
 
 RenderHeader "Authors Management"
 %>

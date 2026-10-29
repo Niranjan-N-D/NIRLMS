@@ -21,7 +21,7 @@ myPendingRequests = 0
 On Error Resume Next
 
 ' Total Catalog Books
-Set rs = conn.Execute("SELECT COUNT(*) AS total FROM Books")
+Set rs = conn.Execute("SELECT COUNT(*) AS total FROM Books WHERE COALESCE(is_deleted, 0) = 0")
 If Not rs.EOF Then totalBooks = rs("total")
 rs.Close
 
@@ -31,7 +31,7 @@ If Not rs.EOF Then totalFeedbacks = rs("total")
 rs.Close
 
 ' Total Kannada Books
-Set rs = conn.Execute("SELECT COUNT(*) AS total FROM Books b LEFT JOIN Categories c ON b.category_id = c.id WHERE c.name LIKE '%Kannada%' OR c.name LIKE '%ಕನ್ನಡ%'")
+Set rs = conn.Execute("SELECT COUNT(*) AS total FROM Books b LEFT JOIN Categories c ON b.category_id = c.id WHERE (c.name LIKE '%Kannada%' OR c.name LIKE '%ಕನ್ನಡ%') AND COALESCE(b.is_deleted, 0) = 0")
 If Not rs.EOF Then kannadaBooks = rs("total")
 rs.Close
 
@@ -45,13 +45,13 @@ If IsStaff() Then
     If Not rs.EOF Then pendingRequests = rs("total")
     rs.Close
 
-    Set rs = conn.Execute("SELECT COUNT(*) AS total FROM Users")
+    Set rs = conn.Execute("SELECT COUNT(*) AS total FROM Users WHERE COALESCE(is_deleted, 0) = 0")
     If Not rs.EOF Then totalUsers = rs("total")
     rs.Close
 
     Dim totalCopiesAvailable
     totalCopiesAvailable = 0
-    Set rs = conn.Execute("SELECT COALESCE(SUM(copies_available), 0) AS total FROM Books")
+    Set rs = conn.Execute("SELECT COALESCE(SUM(copies_available), 0) AS total FROM Books WHERE COALESCE(is_deleted, 0) = 0")
     If Not rs.EOF Then totalCopiesAvailable = SafeInt(rs("total"), 0)
     rs.Close
 
@@ -64,7 +64,8 @@ If IsStaff() Then
     Set rsDashCat = conn.Execute("SELECT c.name, COALESCE(SUM(b.copies_available), 0) AS copies, " & _
                                  "(SELECT COUNT(*) FROM Borrowings br JOIN Books bk ON br.book_id = bk.id WHERE bk.category_id = c.id AND br.status IN ('Borrowed', 'Overdue')) AS loans " & _
                                  "FROM Categories c " & _
-                                 "LEFT JOIN Books b ON c.id = b.category_id " & _
+                                 "LEFT JOIN Books b ON c.id = b.category_id AND COALESCE(b.is_deleted, 0) = 0 " & _
+                                 "WHERE COALESCE(c.is_deleted, 0) = 0 " & _
                                  "GROUP BY c.id, c.name ORDER BY copies DESC LIMIT 6")
     If Not rsDashCat Is Nothing And rsDashCat.State = 1 Then
         Do While Not rsDashCat.EOF

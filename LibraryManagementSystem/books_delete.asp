@@ -13,7 +13,8 @@ bookId = SafeInt(Request.QueryString("id"), 0)
 If bookId > 0 Then
     Set conn = GetConnection()
     On Error Resume Next
-    conn.Execute("DELETE FROM Books WHERE id = " & bookId)
+    ' Soft delete: preserve borrowing history and audit trail while hiding book from catalog
+    conn.Execute("UPDATE Books SET is_deleted = 1, is_available = 0, copies_available = 0 WHERE id = " & bookId)
     conn.Close
     Set conn = Nothing
     On Error GoTo 0

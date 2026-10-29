@@ -27,7 +27,7 @@ totalBookValuation = 0.0
 On Error Resume Next
 
 ' Total Unique Titles & Copies Available & Valuation
-Set rs = conn.Execute("SELECT COUNT(*) AS cnt_titles, COALESCE(SUM(copies_available), 0) AS sum_available, COALESCE(SUM(copies_available * price), 0.0) AS total_val FROM Books")
+Set rs = conn.Execute("SELECT COUNT(*) AS cnt_titles, COALESCE(SUM(copies_available), 0) AS sum_available, COALESCE(SUM(copies_available * price), 0.0) AS total_val FROM Books WHERE COALESCE(is_deleted, 0) = 0")
 If Not rs.EOF Then
     totalTitles = SafeInt(rs("cnt_titles"), 0)
     totalCopiesAvailable = SafeInt(rs("sum_available"), 0)
@@ -69,7 +69,8 @@ Set rsCatDist = conn.Execute("SELECT c.id, c.name, COUNT(b.id) AS title_count, "
                              "COALESCE(SUM(b.copies_available), 0) AS copies_count, " & _
                              "(SELECT COUNT(*) FROM Borrowings br JOIN Books bk ON br.book_id = bk.id WHERE bk.category_id = c.id AND br.status IN ('Borrowed', 'Overdue')) AS active_loans " & _
                              "FROM Categories c " & _
-                             "LEFT JOIN Books b ON c.id = b.category_id " & _
+                             "LEFT JOIN Books b ON c.id = b.category_id AND COALESCE(b.is_deleted, 0) = 0 " & _
+                             "WHERE COALESCE(c.is_deleted, 0) = 0 " & _
                              "GROUP BY c.id, c.name " & _
                              "ORDER BY copies_count DESC, title_count DESC")
 
@@ -86,6 +87,34 @@ If Not rsCatDist Is Nothing And rsCatDist.State = 1 Then
 End If
 
 ' --------------------------------------------------------------------
+' 2b. Strategic Business Unit (SBU) Circulation & Volumes (For Bar Chart)
+' --------------------------------------------------------------------
+Dim rsSbuDist, sbuNames(), sbuActiveLoans(), sbuTotalLoans(), sbuCount, sbui
+sbuCount = 0
+ReDim sbuNames(30), sbuActiveLoans(30), sbuTotalLoans(30)
+
+Set rsSbuDist = conn.Execute("SELECT " & _
+                             "COALESCE(NULLIF(TRIM(u.sbu), ''), 'General') AS sbu_name, " & _
+                             "COUNT(br.id) AS total_borrowed, " & _
+                             "COUNT(CASE WHEN br.status IN ('Borrowed', 'Overdue') THEN 1 END) AS active_loans " & _
+                             "FROM Users u " & _
+                             "LEFT JOIN Borrowings br ON u.id = br.user_id " & _
+                             "WHERE COALESCE(u.is_deleted, 0) = 0 " & _
+                             "GROUP BY sbu_name " & _
+                             "ORDER BY total_borrowed DESC, active_loans DESC, sbu_name ASC")
+
+If Not rsSbuDist Is Nothing And rsSbuDist.State = 1 Then
+    Do While Not rsSbuDist.EOF
+        sbuNames(sbuCount) = CleanText(rsSbuDist("sbu_name") & "")
+        sbuTotalLoans(sbuCount) = SafeInt(rsSbuDist("total_borrowed"), 0)
+        sbuActiveLoans(sbuCount) = SafeInt(rsSbuDist("active_loans"), 0)
+        sbuCount = sbuCount + 1
+        rsSbuDist.MoveNext
+    Loop
+    rsSbuDist.Close
+End If
+
+' --------------------------------------------------------------------
 ' 3. Top Most In-Demand Books (Stored into Arrays for Table & Chart)
 ' --------------------------------------------------------------------
 Dim rsTopBooks, topBookTitles(), topBookAuthors(), topBookPrices(), topBookLoans(), topBookLeft()
@@ -99,6 +128,7 @@ Set rsTopBooks = conn.Execute("SELECT b.id, b.title, b.price, a.name AS author_n
                              "LEFT JOIN Authors a ON b.author_id = a.id " & _
                              "LEFT JOIN Categories c ON b.category_id = c.id " & _
                              "LEFT JOIN Borrowings br ON b.id = br.book_id " & _
+                             "WHERE COALESCE(b.is_deleted, 0) = 0 " & _
                              "GROUP BY b.id, b.title, b.price, a.name, c.name, b.copies_available " & _
                              "ORDER BY borrow_count DESC, b.title ASC LIMIT 6")
 
@@ -249,17 +279,24 @@ RenderHeader "Library Analytics & Inventory Intelligence"
         </div>
     </div>
 
-    <!-- Chart 2: Category Volumes & Circulation Bar Chart -->
+    <!-- Chart 2: SBU Book Volumes & Circulation Bar Chart (X: SBU, Y: Books) -->
     <div class="card" style="margin:0; padding:22px; display:flex; flex-direction:column;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; border-bottom:1px solid #f1f5f9; padding-bottom:10px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; border-bottom:1px solid #f1f5f9; padding-bottom:10px; flex-wrap:wrap; gap:10px;">
             <div>
-                <h3 style="margin:0; color:#0f172a; font-size:17px; font-weight:700;">📊 Category Volumes &amp; Circulation</h3>
-                <p style="margin:3px 0 0 0; color:#64748b; font-size:12.5px;">Shelf stock available vs active loans per category</p>
+                <h3 style="margin:0; color:#0f172a; font-size:17px; font-weight:700;">📊 SBU Book Volumes &amp; Circulation</h3>
+                <p style="margin:3px 0 0 0; color:#64748b; font-size:12.5px;">Active loans vs total books borrowed per Strategic Business Unit</p>
             </div>
-            <a href="categories.asp" class="btn btn-secondary" style="padding:4px 10px; font-size:12px;">Categories ➔</a>
+            <div style="display:flex; align-items:center; gap:8px;">
+                <% If sbuCount > 8 Then %>
+                    <span style="font-size:11.5px; color:#475569; background:#f1f5f9; padding:4px 9px; border-radius:6px; font-weight:600;">↔ Scroll to view all <%= sbuCount %> SBUs</span>
+                <% End If %>
+                <a href="users.asp" class="btn btn-secondary" style="padding:4px 10px; font-size:12px;">Staff Directory ➔</a>
+            </div>
         </div>
-        <div style="position:relative; height:290px; width:100%;">
-            <canvas id="categoryBarChart"></canvas>
+        <div style="overflow-x:auto; overflow-y:hidden; width:100%; -webkit-overflow-scrolling:touch; padding-bottom:6px;">
+            <div style="position:relative; height:290px; min-width:<% If sbuCount > 8 Then Response.Write(CStr(sbuCount * 65) & "px") Else Response.Write("100%") End If %>;">
+                <canvas id="sbuBarChart"></canvas>
+            </div>
         </div>
     </div>
 </div>
@@ -618,29 +655,29 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // 2. Category Volumes & Circulation (Bar Chart)
-    var ctxBar = document.getElementById('categoryBarChart');
+    // 2. SBU Book Volumes & Circulation (Bar Chart: X = SBU, Y = Books)
+    var ctxBar = document.getElementById('sbuBarChart') || document.getElementById('categoryBarChart');
     if (ctxBar) {
-        var catLabels = [<% For ci = 0 To catCount - 1: Response.Write("""" & Replace(catNames(ci), """", "\""") & """" & IIf(ci < catCount - 1, ", ", "")): Next %>];
-        var catShelfStock = [<% For ci = 0 To catCount - 1: Response.Write(catCopies(ci) & IIf(ci < catCount - 1, ", ", "")): Next %>];
-        var catActiveLoans = [<% For ci = 0 To catCount - 1: Response.Write(catLoans(ci) & IIf(ci < catCount - 1, ", ", "")): Next %>];
+        var sbuLabels = [<% For sbui = 0 To sbuCount - 1: Response.Write("""" & Replace(sbuNames(sbui), """", "\""") & """" & IIf(sbui < sbuCount - 1, ", ", "")): Next %>];
+        var sbuActiveLoans = [<% For sbui = 0 To sbuCount - 1: Response.Write(sbuActiveLoans(sbui) & IIf(sbui < sbuCount - 1, ", ", "")): Next %>];
+        var sbuTotalLoans = [<% For sbui = 0 To sbuCount - 1: Response.Write(sbuTotalLoans(sbui) & IIf(sbui < sbuCount - 1, ", ", "")): Next %>];
 
         new Chart(ctxBar, {
             type: 'bar',
             data: {
-                labels: catLabels,
+                labels: sbuLabels,
                 datasets: [
                     {
-                        label: 'Shelf Stock (Available)',
-                        data: catShelfStock,
+                        label: 'Active Loans (Currently Out)',
+                        data: sbuActiveLoans,
                         backgroundColor: '#0284c7',
                         borderRadius: 6,
                         maxBarThickness: 32
                     },
                     {
-                        label: 'Active Loans (On Loan)',
-                        data: catActiveLoans,
-                        backgroundColor: '#f59e0b',
+                        label: 'Total Books Borrowed (All-Time)',
+                        data: sbuTotalLoans,
+                        backgroundColor: '#4338ca',
                         borderRadius: 6,
                         maxBarThickness: 32
                     }
@@ -652,7 +689,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 scales: {
                     x: {
                         grid: { display: false },
+                        title: {
+                            display: true,
+                            text: 'Strategic Business Unit (SBU)',
+                            font: { family: "'Plus Jakarta Sans', sans-serif", size: 12, weight: '700' },
+                            color: '#475569'
+                        },
                         ticks: {
+                            autoSkip: false,
+                            maxRotation: 45,
+                            minRotation: 0,
                             font: { family: "'Plus Jakarta Sans', sans-serif", size: 11, weight: '600' },
                             color: '#64748b'
                         }
@@ -660,6 +706,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     y: {
                         beginAtZero: true,
                         grid: { color: '#f1f5f9' },
+                        title: {
+                            display: true,
+                            text: 'Number of Books',
+                            font: { family: "'Plus Jakarta Sans', sans-serif", size: 12, weight: '700' },
+                            color: '#475569'
+                        },
                         ticks: {
                             precision: 0,
                             font: { family: "'Plus Jakarta Sans', sans-serif", size: 11 },

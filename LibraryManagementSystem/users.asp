@@ -22,9 +22,14 @@ If Request.ServerVariables("REQUEST_METHOD") = "POST" Then
     actionType = Request.Form("action_type")
 
     If actionType = "add" Then
-        Dim username, staffNumber, dob, email, role
+        Dim username, staffNumber, internalNumber, sbuVal, dob, email, role
         username = Trim(Request.Form("username"))
         staffNumber = Trim(Request.Form("staff_number"))
+        internalNumber = Trim(Request.Form("internal_no"))
+        If internalNumber = "" Then internalNumber = Trim(Request.Form("staff_internal_number"))
+        If internalNumber = "" Then internalNumber = "BEL-EXT-" & Right(staffNumber, 3)
+        sbuVal = Trim(Request.Form("sbu"))
+        If sbuVal = "" Then sbuVal = "General"
         dob = Trim(Request.Form("dob"))
         email = Trim(Request.Form("email"))
         role = Trim(Request.Form("role"))
@@ -39,9 +44,9 @@ If Request.ServerVariables("REQUEST_METHOD") = "POST" Then
         If username = "" Or staffNumber = "" Or dob = "" Or email = "" Then
             errorMessage = "Full Name, Staff Number, Date of Birth (Password), and Email are required."
         Else
-            ' Check for existing staff_number or email
+            ' Check for existing staff_number or email among active accounts
             Dim rsCheck, checkSql
-            checkSql = "SELECT id, staff_number, email FROM Users WHERE staff_number = " & SQLQuote(staffNumber) & " OR email = " & SQLQuote(email)
+            checkSql = "SELECT id, staff_number, email FROM Users WHERE (staff_number = " & SQLQuote(staffNumber) & " OR email = " & SQLQuote(email) & ") AND COALESCE(is_deleted, 0) = 0"
             Set rsCheck = Server.CreateObject("ADODB.Recordset")
             rsCheck.Open checkSql, conn, 1, 1
 
@@ -77,9 +82,11 @@ If Request.ServerVariables("REQUEST_METHOD") = "POST" Then
 
                 On Error Resume Next
                 Dim insertSql
-                insertSql = "INSERT INTO Users (username, staff_number, dob, email, password_hash, role, perm_books, perm_requests, perm_borrowings, perm_authors, perm_categories, perm_feedback) VALUES (" & _
+                insertSql = "INSERT INTO Users (username, staff_number, staff_internal_number, sbu, dob, email, password_hash, role, perm_books, perm_requests, perm_borrowings, perm_authors, perm_categories, perm_feedback) VALUES (" & _
                     SQLQuote(username) & ", " & _
                     SQLQuote(staffNumber) & ", " & _
+                    SQLQuote(internalNumber) & ", " & _
+                    SQLQuote(sbuVal) & ", " & _
                     SQLQuote(dob) & ", " & _
                     SQLQuote(email) & ", " & _
                     SQLQuote(dob) & ", " & _
@@ -96,7 +103,7 @@ If Request.ServerVariables("REQUEST_METHOD") = "POST" Then
                 If Err.Number <> 0 Then
                     errorMessage = "Failed to add user: " & Err.Description
                 Else
-                    successMessage = "User '" & CleanText(username) & "' (" & CleanText(role) & ") created successfully! Staff No: " & CleanText(staffNumber) & " | Login DOB: " & CleanText(dob)
+                    successMessage = "User '" & CleanText(username) & "' (" & CleanText(role) & ") created successfully! Staff No: " & CleanText(staffNumber) & " | Internal No: " & CleanText(internalNumber) & " | SBU: " & CleanText(sbuVal) & " | Login DOB: " & CleanText(dob)
                 End If
                 On Error GoTo 0
             End If
@@ -139,14 +146,13 @@ If Request.ServerVariables("REQUEST_METHOD") = "POST" Then
                         errorMessage = "Cannot delete user '" & CleanText(targetName) & "' because they have " & activeCount & " active unreturned book loan(s)."
                     Else
                         On Error Resume Next
-                        conn.Execute("DELETE FROM BookRequests WHERE user_id = " & deleteId)
-                        conn.Execute("DELETE FROM Feedback WHERE user_id = " & deleteId)
-                        conn.Execute("DELETE FROM Users WHERE id = " & deleteId)
+                        ' Soft delete user: preserve borrowing history, book requests, and audit trail
+                        conn.Execute("UPDATE Users SET is_deleted = 1 WHERE id = " & deleteId)
 
                         If Err.Number <> 0 Then
                             errorMessage = "Failed to delete user: " & Err.Description
                         Else
-                            successMessage = "User '" & CleanText(targetName) & "' was successfully removed."
+                            successMessage = "User '" & CleanText(targetName) & "' was successfully removed (audit history preserved)."
                         End If
                         On Error GoTo 0
                     End If
@@ -156,9 +162,9 @@ If Request.ServerVariables("REQUEST_METHOD") = "POST" Then
     End If
 End If
 
-' Fetch all registered users
+' Fetch all registered active users (excluding soft-deleted)
 Dim rsUsers
-Set rsUsers = conn.Execute("SELECT id, username, staff_number, staff_internal_number, dob, email, role, created_at FROM Users ORDER BY FIELD(role, 'Admin', 'Librarian', 'Staff'), username ASC")
+Set rsUsers = conn.Execute("SELECT id, username, staff_number, staff_internal_number, sbu, dob, email, role, created_at FROM Users WHERE COALESCE(is_deleted, 0) = 0 ORDER BY FIELD(role, 'Admin', 'Librarian', 'Staff'), username ASC")
 
 RenderHeader "Staff & User Management"
 %>
@@ -204,6 +210,37 @@ RenderHeader "Staff & User Management"
             </div>
 
             <div class="form-group">
+                <label for="internal_no">Internal No *</label>
+                <input type="text" id="internal_no" name="internal_no" required placeholder="e.g. BEL-EXT-101 / 4521">
+                <small style="color:#7f8c8d; font-size:11.5px; display:block; margin-top:3px;">
+                    Intercom / internal department extension number.
+                </small>
+            </div>
+
+            <div class="form-group">
+                <label for="sbu">Strategic Business Unit (SBU) *</label>
+                <select id="sbu" name="sbu" required style="width:100%; padding:8px 12px; border:1px solid #ccc; border-radius:4px; font-size:13.5px; background:#fff;">
+                    <option value="" disabled selected>-- Select Strategic Business Unit (SBU) --</option>
+                    <option value="Radar SBU">Radar SBU (Weapon Sensors &amp; Radars)</option>
+                    <option value="MilCom SBU">MilCom SBU (Military Communications)</option>
+                    <option value="Naval Systems">Naval Systems (Sonar &amp; Underwater Defense)</option>
+                    <option value="Missile Systems">Missile Systems</option>
+                    <option value="Electronic Warfare (EW)">Electronic Warfare (EW)</option>
+                    <option value="Opto-Electronics">Opto-Electronics (Mil-Optics &amp; Lasers)</option>
+                    <option value="CRL (Research)">Central Research Laboratory (CRL)</option>
+                    <option value="Software SBU">Software SBU (Defense Software)</option>
+                    <option value="Homeland Security">Homeland Security &amp; Smart Cities</option>
+                    <option value="Central HR">Central HR &amp; Administration</option>
+                    <option value="Quality Assurance (QA)">Quality Assurance (QA)</option>
+                    <option value="Supply Chain / Finance">Supply Chain &amp; Finance</option>
+                    <option value="General">General / Administration</option>
+                </select>
+                <small style="color:#7f8c8d; font-size:11.5px; display:block; margin-top:3px;">
+                    Select the employee's assigned Strategic Business Unit.
+                </small>
+            </div>
+
+            <div class="form-group">
                 <label for="dob">Date of Birth (Login Password) *</label>
                 <input type="text" id="dob" name="dob" required placeholder="DD-MM-YYYY (e.g. 15-08-1996)">
                 <small style="color:#2980b9; font-size:11.5px; display:block; margin-top:3px; font-weight:600;">
@@ -245,6 +282,8 @@ RenderHeader "Staff & User Management"
                 <tr style="background:#f8f9fa;">
                     <th style="padding:10px; text-align:left; border-bottom:2px solid #dee2e6;">Staff Member</th>
                     <th style="padding:10px; text-align:left; border-bottom:2px solid #dee2e6;">Staff Number</th>
+                    <th style="padding:10px; text-align:left; border-bottom:2px solid #dee2e6;">Internal No</th>
+                    <th style="padding:10px; text-align:left; border-bottom:2px solid #dee2e6;">SBU</th>
                     <th style="padding:10px; text-align:left; border-bottom:2px solid #dee2e6;">Role</th>
                     <th style="padding:10px; text-align:left; border-bottom:2px solid #dee2e6;">DOB (Password)</th>
                     <th style="padding:10px; text-align:left; border-bottom:2px solid #dee2e6;">Email</th>
@@ -256,7 +295,7 @@ RenderHeader "Staff & User Management"
                 If rsUsers Is Nothing Or rsUsers.State = 0 Or rsUsers.EOF Then
                 %>
                     <tr>
-                        <td colspan="6" style="text-align:center; padding:20px; color:#95a5a6;">No registered users found.</td>
+                        <td colspan="8" style="text-align:center; padding:20px; color:#95a5a6;">No registered users found.</td>
                     </tr>
                 <%
                 Else
@@ -278,6 +317,16 @@ RenderHeader "Staff & User Management"
                         </td>
                         <td style="padding:10px;">
                             <code style="font-weight:700; color:#2c3e50; font-size:13.5px;"><%= Server.HTMLEncode(rsUsers("staff_number") & "") %></code>
+                        </td>
+                        <td style="padding:10px;">
+                            <span style="font-family:monospace; font-weight:600; color:#0284c7; background:#e0f2fe; padding:2px 8px; border-radius:4px; font-size:12.5px;">
+                                <%= Server.HTMLEncode(rsUsers("staff_internal_number") & "") %>
+                            </span>
+                        </td>
+                        <td style="padding:10px;">
+                            <span style="font-size:12px; font-weight:600; color:#4338ca; background:#e0e7ff; padding:3px 9px; border-radius:12px; display:inline-block;">
+                                <%= Server.HTMLEncode(rsUsers("sbu") & "") %>
+                            </span>
                         </td>
                         <td style="padding:10px;">
                             <% If LCase(uRole) = "admin" Then %>
