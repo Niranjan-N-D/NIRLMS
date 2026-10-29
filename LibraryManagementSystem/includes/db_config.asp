@@ -445,8 +445,6 @@ Sub RenderHeader(pageTitle)
             background-color: #f3e8ff;
             color: #7e22ce;
         }
-            color: #9c36b5;
-        }
         .status-pill-gray {
             background-color: #e9ecef;
             color: #495057;
@@ -516,11 +514,174 @@ Sub RenderHeader(pageTitle)
         .alert { padding: 12px 16px; border-radius: 4px; margin-bottom: 20px; }
         .alert-info { background: #d9edf7; color: #31708f; border: 1px solid #bce8f1; }
         .alert-danger { background: #f2dede; color: #a94442; border: 1px solid #ebccd1; }
+
+        /* Option A: Left Sidebar Layout & Navigation Styles */
+        .app-layout {
+            display: flex;
+            min-height: calc(100vh - 60px);
+            position: relative;
+            background: #f4f6fa;
+        }
+        .app-sidebar {
+            width: 250px;
+            background: #0b1320;
+            border-right: 1px solid rgba(255, 255, 255, 0.08);
+            color: #cbd5e1;
+            padding: 16px 12px 28px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            flex-shrink: 0;
+            transition: width 0.22s cubic-bezier(0.4, 0, 0.2, 1), padding 0.22s ease;
+            overflow-y: auto;
+            overflow-x: hidden;
+            user-select: none;
+            z-index: 900;
+        }
+        .sidebar-group {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+        .sidebar-heading {
+            font-size: 11px;
+            font-weight: 800;
+            color: #64748b;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            padding: 6px 12px 6px 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
+        .heading-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+        .side-link {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px;
+            border-radius: 8px;
+            color: #94a3b8;
+            text-decoration: none;
+            font-size: 13.5px;
+            font-weight: 600;
+            transition: all 0.15s ease;
+            white-space: nowrap;
+        }
+        .side-link:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: #ffffff;
+        }
+        .side-link.active {
+            background: #0077f6 !important;
+            color: #ffffff !important;
+            font-weight: 700;
+            box-shadow: 0 2px 8px rgba(0, 119, 246, 0.35);
+        }
+        .side-icon {
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 22px;
+            flex-shrink: 0;
+        }
+        .side-text {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Collapsed Sidebar State (68px wide) */
+        .sidebar-collapsed .app-sidebar {
+            width: 68px;
+            padding: 16px 8px 28px 8px;
+        }
+        .sidebar-collapsed .sidebar-heading .heading-text {
+            display: none;
+        }
+        .sidebar-collapsed .sidebar-heading {
+            justify-content: center;
+            padding: 6px 0;
+        }
+        .sidebar-collapsed .side-link {
+            justify-content: center;
+            padding: 9px 0;
+        }
+        .sidebar-collapsed .side-text {
+            display: none;
+        }
+
+        /* Hamburger Toggle Button */
+        .sidebar-toggle-btn {
+            background: rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            width: 34px;
+            height: 34px;
+            border-radius: 7px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.15s ease;
+            padding: 0;
+            margin-right: 2px;
+            flex-shrink: 0;
+        }
+        .sidebar-toggle-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Main Content Container */
+        .app-main-content {
+            flex: 1;
+            padding: 24px 30px;
+            background: #f4f6fa;
+            overflow-x: auto;
+            min-width: 0;
+        }
+        .app-main-content .container {
+            max-width: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        @media (max-width: 860px) {
+            .app-sidebar {
+                position: absolute;
+                top: 0;
+                bottom: 0;
+                left: 0;
+                box-shadow: 4px 0 20px rgba(0,0,0,0.3);
+            }
+            .sidebar-collapsed .app-sidebar {
+                transform: translateX(-100%);
+                width: 250px;
+            }
+            .app-main-content {
+                padding: 16px 14px;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="navbar">
         <div class="nav-left">
+            <button type="button" class="sidebar-toggle-btn" id="sidebarToggleBtn" onclick="toggleSidebar()" title="Toggle Sidebar (Expand/Collapse)">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                    <line x1="3" y1="12" x2="21" y2="12"/>
+                    <line x1="3" y1="6" x2="21" y2="6"/>
+                    <line x1="3" y1="18" x2="21" y2="18"/>
+                </svg>
+            </button>
+
             <a href="dashboard.asp" class="nav-brand">
                 <svg width="24" height="16" viewBox="0 0 52 36" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align:middle;">
                     <path d="M0 5h34c4.5 0 8 3.5 8 8s-3.5 8-8 8H6" stroke="#0080ff" stroke-width="6.5" stroke-linecap="round"/>
@@ -529,59 +690,7 @@ Sub RenderHeader(pageTitle)
                 </svg>
                 <span>BEL Library</span>
             </a>
-
-            <% If Not IsEmpty(Session("UserId")) Then %>
-                <div class="nav-links">
-                    <a href="dashboard.asp" class="nav-link <%= NavActive("dashboard.asp", currentScript) %>">
-                        <span>🏠</span> Dashboard
-                    </a>
-                    <% If HasPermission("books") Then %>
-                        <a href="books.asp" class="nav-link <%= NavActive("books.asp", currentScript) %>">
-                            <span>📖</span> <%= IIf(IsStaff(), "Books", "Book Catalog") %>
-                        </a>
-                    <% End If %>
-                    <% If HasPermission("requests") Then %>
-                        <a href="requests.asp" class="nav-link <%= NavActive("requests.asp", currentScript) %>">
-                            <span>📑</span> <%= IIf(IsStaff(), "Requests", "My Requests") %>
-                        </a>
-                    <% End If %>
-                    <% If HasPermission("borrowings") Then %>
-                        <a href="borrowings.asp" class="nav-link <%= NavActive("borrowings.asp", currentScript) %>">
-                            <span>⏱️</span> <%= IIf(IsStaff(), "Borrowings", "My Loans") %>
-                        </a>
-                    <% End If %>
-                    <% If IsStaff() Then %>
-                        <a href="analytics.asp" class="nav-link nav-analytics <%= NavActive("analytics.asp", currentScript) %>" style="<%= IIf(NavActive("analytics.asp", currentScript)="active", "", "color:#cbd5e1; font-weight:600;") %>">
-                            <span>📊</span> Analytics
-                        </a>
-                        <a href="users.asp" class="nav-link <%= NavActive("users.asp", currentScript) %>">
-                            <span>👥</span> Users
-                        </a>
-                        <span class="nav-divider"></span>
-                    <% End If %>
-
-                    <% If HasPermission("authors") Then %>
-                        <a href="authors.asp" class="nav-link <%= NavActive("authors.asp", currentScript) %>">
-                            <span>✍️</span> Authors
-                        </a>
-                    <% End If %>
-                    <% If HasPermission("categories") Then %>
-                        <a href="categories.asp" class="nav-link <%= NavActive("categories.asp", currentScript) %>">
-                            <span>🏷️</span> Categories
-                        </a>
-                    <% End If %>
-                    <% If HasPermission("feedback") Then %>
-                        <a href="feedback.asp" class="nav-link <%= NavActive("feedback.asp", currentScript) %>">
-                            <span>💬</span> Reviews
-                        </a>
-                    <% End If %>
-                    <% If IsAdmin() Then %>
-                        <a href="manage_permissions.asp" class="nav-link nav-admin <%= NavActive("manage_permissions.asp", currentScript) %>" style="<%= IIf(NavActive("manage_permissions.asp", currentScript)="active", "", "color:#f39c12; font-weight:600;") %>">
-                            <span>⚙️</span> Permissions
-                        </a>
-                    <% End If %>
-                </div>
-            <% End If %>
+            <span style="color:#64748b; font-size:13px; font-weight:600;" class="welcome-label">&bull; Information &amp; Resource Centre</span>
         </div>
 
         <div class="nav-right">
@@ -598,13 +707,125 @@ Sub RenderHeader(pageTitle)
             <% End If %>
         </div>
     </div>
-    <div class="container">
+
+    <!-- App Layout: Left Sidebar + Main Content -->
+    <div class="app-layout" id="appLayout">
+        <% If Not IsEmpty(Session("UserId")) Then %>
+            <aside class="app-sidebar" id="appSidebar">
+                <!-- 1. MASTER SECTION -->
+                <div class="sidebar-group">
+                    <div class="sidebar-heading" title="Master Data Entities">
+                        <span class="heading-badge">📁</span>
+                        <span class="heading-text">MASTER</span>
+                    </div>
+                    <% If HasPermission("books") Then %>
+                        <a href="books.asp" class="side-link <%= NavActive("books.asp", currentScript) %>" title="Books Catalog">
+                            <span class="side-icon">📖</span>
+                            <span class="side-text"><%= IIf(IsStaff(), "Books Catalog", "Book Catalog") %></span>
+                        </a>
+                    <% End If %>
+                    <% If IsStaff() Then %>
+                        <a href="users.asp" class="side-link <%= NavActive("users.asp", currentScript) %>" title="Staff & User Directory">
+                            <span class="side-icon">👥</span>
+                            <span class="side-text">Staff &amp; Users</span>
+                        </a>
+                    <% End If %>
+                    <% If HasPermission("authors") Then %>
+                        <a href="authors.asp" class="side-link <%= NavActive("authors.asp", currentScript) %>" title="Authors Master">
+                            <span class="side-icon">✍️</span>
+                            <span class="side-text">Authors</span>
+                        </a>
+                    <% End If %>
+                    <% If HasPermission("categories") Then %>
+                        <a href="categories.asp" class="side-link <%= NavActive("categories.asp", currentScript) %>" title="Categories Master">
+                            <span class="side-icon">🏷️</span>
+                            <span class="side-text">Categories</span>
+                        </a>
+                    <% End If %>
+                </div>
+
+                <!-- 2. TRANSACTIONS SECTION -->
+                <div class="sidebar-group">
+                    <div class="sidebar-heading" title="Operational Transactions">
+                        <span class="heading-badge">⚡</span>
+                        <span class="heading-text">TRANSACTIONS</span>
+                    </div>
+                    <% If HasPermission("requests") Then %>
+                        <a href="requests.asp" class="side-link <%= NavActive("requests.asp", currentScript) %>" title="Book Requests Approval & Collection">
+                            <span class="side-icon">📑</span>
+                            <span class="side-text"><%= IIf(IsStaff(), "Book Requests (48h)", "My Requests") %></span>
+                        </a>
+                    <% End If %>
+                    <% If HasPermission("borrowings") Then %>
+                        <a href="borrowings.asp" class="side-link <%= NavActive("borrowings.asp", currentScript) %>" title="Borrowings, Loans & Returns">
+                            <span class="side-icon">⏱️</span>
+                            <span class="side-text"><%= IIf(IsStaff(), "Issue / Return Log", "My Active Loans") %></span>
+                        </a>
+                    <% End If %>
+                    <% If HasPermission("feedback") Then %>
+                        <a href="feedback.asp" class="side-link <%= NavActive("feedback.asp", currentScript) %>" title="Book Reviews & Website Ratings">
+                            <span class="side-icon">💬</span>
+                            <span class="side-text">Reviews &amp; Ratings</span>
+                        </a>
+                    <% End If %>
+                </div>
+
+                <!-- 3. ANALYTICS & REPORTS SECTION -->
+                <div class="sidebar-group">
+                    <div class="sidebar-heading" title="Analytics, Reporting & Administration">
+                        <span class="heading-badge">📊</span>
+                        <span class="heading-text">ANALYTICS &amp; SYSTEM</span>
+                    </div>
+                    <a href="dashboard.asp" class="side-link <%= NavActive("dashboard.asp", currentScript) %>" title="Operational Dashboard">
+                        <span class="side-icon">🏠</span>
+                        <span class="side-text">Dashboard</span>
+                    </a>
+                    <% If IsStaff() Then %>
+                        <a href="analytics.asp" class="side-link <%= NavActive("analytics.asp", currentScript) %>" title="Circulation Intelligence & Audits">
+                            <span class="side-icon">📈</span>
+                            <span class="side-text">Circulation Analytics</span>
+                        </a>
+                    <% End If %>
+                    <% If IsAdmin() Then %>
+                        <a href="manage_permissions.asp" class="side-link <%= NavActive("manage_permissions.asp", currentScript) %>" title="Role Feature Permissions">
+                            <span class="side-icon">⚙️</span>
+                            <span class="side-text">Role Permissions</span>
+                        </a>
+                    <% End If %>
+                </div>
+            </aside>
+        <% End If %>
+
+        <main class="app-main-content">
+            <div class="container">
 <%
 End Sub
 
 Sub RenderFooter()
 %>
+            </div>
+        </main>
     </div>
+
+    <script>
+    function toggleSidebar() {
+        var layout = document.getElementById("appLayout");
+        if (!layout) return;
+        layout.classList.toggle("sidebar-collapsed");
+        try {
+            var isCollapsed = layout.classList.contains("sidebar-collapsed");
+            localStorage.setItem("bel_sidebar_collapsed", isCollapsed ? "true" : "false");
+        } catch(e) {}
+    }
+    (function() {
+        try {
+            if (localStorage.getItem("bel_sidebar_collapsed") === "true") {
+                var layout = document.getElementById("appLayout");
+                if (layout) layout.classList.add("sidebar-collapsed");
+            }
+        } catch(e) {}
+    })();
+    </script>
 </body>
 </html>
 <%
