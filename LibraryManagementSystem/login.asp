@@ -270,23 +270,29 @@ End If
             font-weight: 500;
         }
 
-        /* Library Photo Preview Card */
+        /* BEL Logo Showcase Card (Replacing library_bg.jpg) */
         .showcase-image-card {
-            max-width: 460px;
-            height: 220px;
+            max-width: 420px;
+            height: 180px;
             border-radius: 20px;
             overflow: hidden;
-            box-shadow: 0 16px 36px rgba(15, 23, 42, 0.12);
-            border: 3px solid #ffffff;
+            box-shadow: 0 16px 36px rgba(15, 23, 42, 0.08);
+            border: 2px solid #ffffff;
             position: relative;
             background: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px 32px;
+            box-sizing: border-box;
         }
         .showcase-image-card img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            object-position: center;
-            transition: transform 0.4s ease;
+            max-width: 100%;
+            max-height: 100%;
+            width: auto;
+            height: auto;
+            object-fit: contain;
+            transition: transform 0.3s ease;
         }
         .showcase-image-card:hover img {
             transform: scale(1.03);
@@ -673,9 +679,9 @@ End If
                 </div>
             </div>
 
-            <!-- Library Interior Photo Showcase -->
+            <!-- BEL Official Logo Showcase -->
             <div class="showcase-image-card">
-                <img src="images/library_bg.jpg" alt="BEL Modern Library Interior">
+                <img src="images/bel_logo.png" alt="Bharat Electronics Limited">
             </div>
         </section>
 
