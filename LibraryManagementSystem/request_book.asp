@@ -94,7 +94,7 @@ RenderHeader "Request Book"
 
 <div class="card" style="max-width: 650px; margin: 20px auto;">
     <div class="card-header">
-        <h2 style="margin:0; color:#2c3e50;">Request a Book (Staff Portal)</h2>
+        <h2 style="margin:0; color:#2c3e50;"><%= IIf(IsStaff(), "Request a Book (Staff Portal)", "Request a Book") %></h2>
         <a href="books.asp" class="btn btn-secondary">Back to Catalog</a>
     </div>
 
@@ -103,16 +103,16 @@ RenderHeader "Request Book"
     <% End If %>
 
     <form action="request_book.asp" method="POST">
-        <!-- 1. Staff Metadata Fields -->
+        <!-- 1. Staff / Member Metadata Fields -->
         <div style="background:#eef2f7; padding:15px; border-radius:6px; margin-bottom:15px;">
-            <h4 style="margin-top:0; margin-bottom:10px; color:#34495e;">Staff Details</h4>
+            <h4 style="margin-top:0; margin-bottom:10px; color:#34495e;"><%= IIf(IsStaff(), "Staff Details", "Borrower / Member Details") %></h4>
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
                 <div class="form-group" style="margin-bottom:0;">
-                    <label for="staff_name" style="font-size:12px;">Staff Name *</label>
+                    <label for="staff_name" style="font-size:12px;"><%= IIf(IsStaff(), "Staff Name *", "Borrower Name *") %></label>
                     <input type="text" id="staff_name" name="staff_name" value="<%= CleanText(currentStaffName) %>" required style="padding:6px 10px;">
                 </div>
                 <div class="form-group" style="margin-bottom:0;">
-                    <label for="staff_number" style="font-size:12px;">Staff Number *</label>
+                    <label for="staff_number" style="font-size:12px;"><%= IIf(IsStaff(), "Staff Number *", "Staff / Badge Number *") %></label>
                     <input type="text" id="staff_number" name="staff_number" value="<%= CleanText(currentStaffNumber) %>" required style="padding:6px 10px;">
                 </div>
             </div>

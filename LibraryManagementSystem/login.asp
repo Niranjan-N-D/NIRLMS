@@ -110,7 +110,7 @@ End If
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BEL Library - Library Management System</title>
+    <title>Central HR Library - BEL BG Complex</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -172,9 +172,12 @@ End If
         .login-main {
             flex: 1;
             display: flex;
+            align-items: center;
+            justify-content: center;
             position: relative;
             background: linear-gradient(135deg, #f8fafc 0%, #edf4fc 40%, #e2eefb 100%);
             min-height: calc(100vh - 56px);
+            padding: 30px 24px;
         }
 
         /* Background Organic Wave Overlay */
@@ -182,31 +185,46 @@ End If
             position: absolute;
             top: 0;
             bottom: 0;
-            left: 38%;
-            width: 320px;
+            left: 45%;
+            width: 380px;
             background: radial-gradient(ellipse at center, rgba(224, 242, 254, 0.6) 0%, rgba(240, 249, 255, 0) 70%);
             pointer-events: none;
             z-index: 1;
         }
 
-        /* Left Showcase Section */
-        .showcase-section {
-            flex: 1.1;
-            padding: 48px 40px 32px 64px;
+        /* Centered Enterprise Container (Idea 1) */
+        .login-container {
+            width: 100%;
+            max-width: 1120px;
             display: flex;
-            flex-direction: column;
+            align-items: center;
             justify-content: space-between;
+            gap: 48px;
             position: relative;
             z-index: 2;
+            margin: 0 auto;
+        }
+
+        /* Left Showcase Section */
+        .showcase-section {
+            flex: 1;
+            max-width: 500px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            position: relative;
+            z-index: 2;
+            padding: 0;
         }
         .showcase-content {
-            max-width: 540px;
+            max-width: 100%;
         }
         .showcase-tag {
-            color: #64748b;
+            color: #0284c7;
             font-size: 14px;
-            font-weight: 600;
-            letter-spacing: 0.02em;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
             margin-bottom: 4px;
         }
         .showcase-title {
@@ -221,15 +239,15 @@ End If
             color: #64748b;
             font-size: 15px;
             font-weight: 500;
-            margin-bottom: 34px;
+            margin-bottom: 22px;
         }
 
         /* Feature Rows */
         .feature-stack {
             display: flex;
             flex-direction: column;
-            gap: 18px;
-            margin-bottom: 30px;
+            gap: 15px;
+            margin-bottom: 18px;
         }
         .feature-item {
             display: flex;
@@ -270,41 +288,45 @@ End If
             font-weight: 500;
         }
 
-        /* BEL Logo Showcase Card (Replacing library_bg.jpg) */
+        /* BEL Official Logo Showcase (Seamlessly Merged with Background) */
         .showcase-image-card {
-            max-width: 420px;
-            height: 180px;
-            border-radius: 20px;
-            overflow: hidden;
-            box-shadow: 0 16px 36px rgba(15, 23, 42, 0.08);
-            border: 2px solid #ffffff;
+            max-width: 480px;
+            width: 100%;
+            height: auto;
+            border-radius: 0;
+            overflow: visible;
+            box-shadow: none;
+            border: none;
             position: relative;
-            background: #ffffff;
+            background: transparent;
             display: flex;
             align-items: center;
-            justify-content: center;
-            padding: 24px 32px;
+            justify-content: flex-start;
+            padding: 10px 0;
             box-sizing: border-box;
+            margin-top: 4px;
         }
         .showcase-image-card img {
-            max-width: 100%;
-            max-height: 100%;
-            width: auto;
+            width: 100%;
             height: auto;
+            max-height: 140px;
+            max-width: 440px;
             object-fit: contain;
+            mix-blend-mode: multiply;
             transition: transform 0.3s ease;
         }
         .showcase-image-card:hover img {
-            transform: scale(1.03);
+            transform: scale(1.02);
         }
 
         /* Right Form Container */
         .form-section {
-            flex: 0.95;
+            flex: 1;
+            max-width: 440px;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 36px 48px 36px 20px;
+            padding: 0;
             position: relative;
             z-index: 10;
         }
@@ -585,11 +607,13 @@ End If
 
         /* Responsive Breakpoints */
         @media (max-width: 980px) {
-            .login-main {
+            .login-container {
                 flex-direction: column;
+                gap: 24px;
             }
             .showcase-section {
-                padding: 36px 24px 20px 24px;
+                max-width: 100%;
+                padding: 20px 16px 10px 16px;
                 align-items: center;
                 text-align: center;
             }
@@ -608,7 +632,8 @@ End If
                 display: none;
             }
             .form-section {
-                padding: 10px 20px 36px 20px;
+                max-width: 100%;
+                padding: 10px 16px 36px 16px;
             }
         }
     </style>
@@ -619,14 +644,9 @@ End If
     <header class="top-navbar">
         <a href="login.asp" class="nav-brand-left">
             <div class="nav-brand-icon">
-                <!-- BEL Blue Stylized Emblem -->
-                <svg width="26" height="18" viewBox="0 0 52 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M0 5h34c4.5 0 8 3.5 8 8s-3.5 8-8 8H6" stroke="#0080ff" stroke-width="6.5" stroke-linecap="round"/>
-                    <path d="M0 18h38c5 0 9 4 9 9s-4 9-9 9H10" stroke="#0080ff" stroke-width="6.5" stroke-linecap="round"/>
-                    <path d="M0 31h32" stroke="#0080ff" stroke-width="6.5" stroke-linecap="round"/>
-                </svg>
+                <img src="images/bel_emblem_white.png" alt="BEL Emblem" style="height:24px; width:auto; vertical-align:middle; display:block; object-fit:contain;">
             </div>
-            <span class="nav-brand-text">BEL Library</span>
+            <span class="nav-brand-text">Central HR Library</span>
         </a>
         <div class="nav-system-right">
             <span>📖</span>
@@ -638,11 +658,12 @@ End If
     <main class="login-main">
         <div class="bg-wave-shape"></div>
 
-        <!-- Left Showcase Side -->
-        <section class="showcase-section">
+        <div class="login-container">
+            <!-- Left Showcase Side -->
+            <section class="showcase-section">
             <div class="showcase-content">
-                <div class="showcase-tag">Bharat Electronics</div>
-                <h1 class="showcase-title">BEL Library</h1>
+                <div class="showcase-tag">BG Complex</div>
+                <h1 class="showcase-title">Central HR Library</h1>
                 <p class="showcase-sub">Knowledge today, a stronger tomorrow.</p>
 
                 <!-- 3 Feature Rows -->
@@ -679,9 +700,9 @@ End If
                 </div>
             </div>
 
-            <!-- BEL Official Logo Showcase -->
+            <!-- BEL Official Logo Showcase (Seamlessly Merged with Background) -->
             <div class="showcase-image-card">
-                <img src="images/bel_logo.png" alt="Bharat Electronics Limited">
+                <img src="images/bel_logo_transparent.png" alt="Bharat Electronics Limited">
             </div>
         </section>
 
@@ -690,8 +711,8 @@ End If
             <div class="login-card">
                 <!-- Bharat Electronics Official Logo -->
                 <img src="images/bel_logo.png" alt="Bharat Electronics Limited" class="login-header-logo">
-                <h2 class="login-card-title">Welcome to BEL Library</h2>
-                <p class="login-card-sub">Sign in to access your account</p>
+                <h2 class="login-card-title">Welcome to Central HR Library</h2>
+                <p class="login-card-sub">BG Complex &bull; Sign in to access your account</p>
 
                 <% If msg <> "" Then %>
                     <div class="alert-box alert-info-box"><%= Server.HTMLEncode(msg) %></div>
@@ -783,6 +804,7 @@ End If
                 <p class="login-quote">&ldquo; A reader today, a leader tomorrow. &rdquo;</p>
             </div>
         </section>
+        </div>
     </main>
 
     <script>

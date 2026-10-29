@@ -57,9 +57,14 @@ Else
 End If
 
 ' --------------------------------------------------------------------
-' 2. Category Distribution & Stock
 ' --------------------------------------------------------------------
-Dim rsCatDist
+' 2. Category Distribution & Stock (Stored into Arrays for Table & Chart)
+' --------------------------------------------------------------------
+Dim rsCatDist, catNames(), catCopies(), catLoans(), catTitles()
+Dim catCount, ci
+catCount = 0
+ReDim catNames(50), catCopies(50), catLoans(50), catTitles(50)
+
 Set rsCatDist = conn.Execute("SELECT c.id, c.name, COUNT(b.id) AS title_count, " & _
                              "COALESCE(SUM(b.copies_available), 0) AS copies_count, " & _
                              "(SELECT COUNT(*) FROM Borrowings br JOIN Books bk ON br.book_id = bk.id WHERE bk.category_id = c.id AND br.status IN ('Borrowed', 'Overdue')) AS active_loans " & _
@@ -68,10 +73,26 @@ Set rsCatDist = conn.Execute("SELECT c.id, c.name, COUNT(b.id) AS title_count, "
                              "GROUP BY c.id, c.name " & _
                              "ORDER BY copies_count DESC, title_count DESC")
 
+If Not rsCatDist Is Nothing And rsCatDist.State = 1 Then
+    Do While Not rsCatDist.EOF
+        catNames(catCount) = CleanText(rsCatDist("name") & "")
+        catTitles(catCount) = SafeInt(rsCatDist("title_count"), 0)
+        catCopies(catCount) = SafeInt(rsCatDist("copies_count"), 0)
+        catLoans(catCount) = SafeInt(rsCatDist("active_loans"), 0)
+        catCount = catCount + 1
+        rsCatDist.MoveNext
+    Loop
+    rsCatDist.Close
+End If
+
 ' --------------------------------------------------------------------
-' 3. Top Most In-Demand Books (Most Borrowed)
+' 3. Top Most In-Demand Books (Stored into Arrays for Table & Chart)
 ' --------------------------------------------------------------------
-Dim rsTopBooks
+Dim rsTopBooks, topBookTitles(), topBookAuthors(), topBookPrices(), topBookLoans(), topBookLeft()
+Dim topBookCount, bi
+topBookCount = 0
+ReDim topBookTitles(50), topBookAuthors(50), topBookPrices(50), topBookLoans(50), topBookLeft(50)
+
 Set rsTopBooks = conn.Execute("SELECT b.id, b.title, b.price, a.name AS author_name, c.name AS category_name, " & _
                              "COUNT(br.id) AS borrow_count, b.copies_available " & _
                              "FROM Books b " & _
@@ -79,7 +100,20 @@ Set rsTopBooks = conn.Execute("SELECT b.id, b.title, b.price, a.name AS author_n
                              "LEFT JOIN Categories c ON b.category_id = c.id " & _
                              "LEFT JOIN Borrowings br ON b.id = br.book_id " & _
                              "GROUP BY b.id, b.title, b.price, a.name, c.name, b.copies_available " & _
-                             "ORDER BY borrow_count DESC, b.title ASC LIMIT 5")
+                             "ORDER BY borrow_count DESC, b.title ASC LIMIT 6")
+
+If Not rsTopBooks Is Nothing And rsTopBooks.State = 1 Then
+    Do While Not rsTopBooks.EOF
+        topBookTitles(topBookCount) = CleanText(rsTopBooks("title") & "")
+        topBookAuthors(topBookCount) = CleanText(rsTopBooks("author_name") & "")
+        topBookPrices(topBookCount) = SafeFloat(rsTopBooks("price"), 0)
+        topBookLoans(topBookCount) = SafeInt(rsTopBooks("borrow_count"), 0)
+        topBookLeft(topBookCount) = SafeInt(rsTopBooks("copies_available"), 0)
+        topBookCount = topBookCount + 1
+        rsTopBooks.MoveNext
+    Loop
+    rsTopBooks.Close
+End If
 
 ' --------------------------------------------------------------------
 ' 4. Overdue Borrowings Detailed Log
@@ -198,19 +232,50 @@ RenderHeader "Library Analytics & Inventory Intelligence"
 </div>
 
 <!-- ==================================================================== -->
-<!-- 2. Visual Inventory Health & Circulation Bar -->
+<!-- 2. Visual Analytics Charts: Pie Chart & Bar Chart -->
 <!-- ==================================================================== -->
+<div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap:22px; margin-bottom:28px;">
+    <!-- Chart 1: System Pie / Doughnut Chart -->
+    <div class="card" style="margin:0; padding:22px; display:flex; flex-direction:column;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; border-bottom:1px solid #f1f5f9; padding-bottom:10px;">
+            <div>
+                <h3 style="margin:0; color:#0f172a; font-size:17px; font-weight:700;">🍩 System Inventory &amp; Status Breakdown</h3>
+                <p style="margin:3px 0 0 0; color:#64748b; font-size:12.5px;">Live distribution of physical book copies by loan status</p>
+            </div>
+            <span class="status-pill status-pill-blue" style="font-size:12px; padding:4px 10px;"><%= circulationRate %>% Circulating</span>
+        </div>
+        <div style="position:relative; height:290px; width:100%; display:flex; align-items:center; justify-content:center;">
+            <canvas id="systemPieChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Chart 2: Category Volumes & Circulation Bar Chart -->
+    <div class="card" style="margin:0; padding:22px; display:flex; flex-direction:column;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; border-bottom:1px solid #f1f5f9; padding-bottom:10px;">
+            <div>
+                <h3 style="margin:0; color:#0f172a; font-size:17px; font-weight:700;">📊 Category Volumes &amp; Circulation</h3>
+                <p style="margin:3px 0 0 0; color:#64748b; font-size:12.5px;">Shelf stock available vs active loans per category</p>
+            </div>
+            <a href="categories.asp" class="btn btn-secondary" style="padding:4px 10px; font-size:12px;">Categories ➔</a>
+        </div>
+        <div style="position:relative; height:290px; width:100%;">
+            <canvas id="categoryBarChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Circulation Progress Bar -->
 <div class="card" style="margin-bottom:28px;">
     <div class="card-header" style="margin-bottom:15px; border-bottom:1px solid #eee;">
         <div>
-            <h3 style="margin:0; color:#2c3e50; font-size:18px;">Inventory Status & Circulation Ratio</h3>
-            <p style="margin:4px 0 0 0; color:#7f8c8d; font-size:13px;">Proportion of physical inventory available on shelves vs. active member loans.</p>
+            <h3 style="margin:0; color:#2c3e50; font-size:16px;">Shelf Availability vs. Active Circulation Ratio</h3>
+            <p style="margin:4px 0 0 0; color:#7f8c8d; font-size:12.5px;">Proportion of catalog inventory on physical shelves vs out with members.</p>
         </div>
-        <strong style="color:#2980b9; font-size:16px;"><%= circulationRate %>% Circulation Rate</strong>
+        <strong style="color:#2980b9; font-size:15px;"><%= circulationRate %>% Circulation Rate</strong>
     </div>
 
     <!-- Multi-Color Distribution Bar -->
-    <div style="height:22px; width:100%; background:#ecf0f1; border-radius:12px; overflow:hidden; display:flex; margin-bottom:12px;">
+    <div style="height:20px; width:100%; background:#ecf0f1; border-radius:10px; overflow:hidden; display:flex; margin-bottom:12px;">
         <%
         Dim pctAvail, pctBorrowed, pctOverdue
         If totalInventoryCopies > 0 Then
@@ -223,27 +288,27 @@ RenderHeader "Library Analytics & Inventory Intelligence"
             pctOverdue = 0
         End If
         %>
-        <div style="width:<%= pctAvail %>%; background:#2ecc71;" title="Available on Shelves: <%= totalCopiesAvailable %> (<%= pctAvail %>%)"></div>
-        <div style="width:<%= pctBorrowed %>%; background:#f39c12;" title="Active Borrowings: <%= totalCurrentlyBorrowed %> (<%= pctBorrowed %>%)"></div>
-        <div style="width:<%= pctOverdue %>%; background:#e74c3c;" title="Overdue Loans: <%= totalOverdue %> (<%= pctOverdue %>%)"></div>
+        <div style="width:<%= pctAvail %>%; background:#10b981;" title="Available on Shelves: <%= totalCopiesAvailable %> (<%= pctAvail %>%)"></div>
+        <div style="width:<%= pctBorrowed %>%; background:#f59e0b;" title="Active Borrowings: <%= totalCurrentlyBorrowed %> (<%= pctBorrowed %>%)"></div>
+        <div style="width:<%= pctOverdue %>%; background:#ef4444;" title="Overdue Loans: <%= totalOverdue %> (<%= pctOverdue %>%)"></div>
     </div>
 
     <!-- Legend -->
-    <div style="display:flex; gap:24px; flex-wrap:wrap; font-size:13.5px; color:#555;">
+    <div style="display:flex; gap:20px; flex-wrap:wrap; font-size:13px; color:#555;">
         <div style="display:flex; align-items:center; gap:8px;">
-            <span style="display:inline-block; width:14px; height:14px; background:#2ecc71; border-radius:3px;"></span>
+            <span style="display:inline-block; width:13px; height:13px; background:#10b981; border-radius:3px;"></span>
             <span><strong><%= totalCopiesAvailable %> Available on Shelves</strong> (<%= pctAvail %>%)</span>
         </div>
         <div style="display:flex; align-items:center; gap:8px;">
-            <span style="display:inline-block; width:14px; height:14px; background:#f39c12; border-radius:3px;"></span>
+            <span style="display:inline-block; width:13px; height:13px; background:#f59e0b; border-radius:3px;"></span>
             <span><strong><%= totalCurrentlyBorrowed %> Active Loans</strong> (<%= pctBorrowed %>%)</span>
         </div>
         <div style="display:flex; align-items:center; gap:8px;">
-            <span style="display:inline-block; width:14px; height:14px; background:#e74c3c; border-radius:3px;"></span>
+            <span style="display:inline-block; width:13px; height:13px; background:#ef4444; border-radius:3px;"></span>
             <span><strong><%= totalOverdue %> Overdue</strong> (<%= pctOverdue %>%)</span>
         </div>
         <div style="display:flex; align-items:center; gap:8px;">
-            <span style="display:inline-block; width:14px; height:14px; background:#95a5a6; border-radius:3px;"></span>
+            <span style="display:inline-block; width:13px; height:13px; background:#3b82f6; border-radius:3px;"></span>
             <span><strong><%= totalReturned %> Returned Historical</strong></span>
         </div>
     </div>
@@ -362,25 +427,23 @@ RenderHeader "Library Analytics & Inventory Intelligence"
                 </thead>
                 <tbody>
                     <%
-                    If Not rsCatDist Is Nothing And rsCatDist.State = 1 Then
-                        Do While Not rsCatDist.EOF
+                    If catCount > 0 Then
+                        For ci = 0 To catCount - 1
                     %>
                     <tr>
-                        <td><strong style="color:#2c3e50;"><%= CleanText(rsCatDist("name") & "") %></strong></td>
-                        <td style="text-align:center;" class="col-nowrap"><span class="status-pill status-pill-blue" style="font-size:12px; padding:3px 12px;"><%= rsCatDist("title_count") %> Titles</span></td>
-                        <td style="text-align:center;" class="col-nowrap"><strong><%= rsCatDist("copies_count") %> copies</strong></td>
+                        <td><strong style="color:#2c3e50;"><%= catNames(ci) %></strong></td>
+                        <td style="text-align:center;" class="col-nowrap"><span class="status-pill status-pill-blue" style="font-size:12px; padding:3px 12px;"><%= catTitles(ci) %> Titles</span></td>
+                        <td style="text-align:center;" class="col-nowrap"><strong><%= catCopies(ci) %> copies</strong></td>
                         <td style="text-align:center;" class="col-nowrap">
-                            <% If SafeInt(rsCatDist("active_loans"), 0) > 0 Then %>
-                                <span class="status-pill status-pill-amber" style="font-size:12px; padding:3px 12px;"><%= rsCatDist("active_loans") %> on loan</span>
+                            <% If catLoans(ci) > 0 Then %>
+                                <span class="status-pill status-pill-amber" style="font-size:12px; padding:3px 12px;"><%= catLoans(ci) %> on loan</span>
                             <% Else %>
                                 <span style="color:#95a5a6; font-size:12px;">0 on loan</span>
                             <% End If %>
                         </td>
                     </tr>
                     <%
-                            rsCatDist.MoveNext
-                        Loop
-                        rsCatDist.Close
+                        Next
                     End If
                     %>
                 </tbody>
@@ -406,28 +469,26 @@ RenderHeader "Library Analytics & Inventory Intelligence"
                 </thead>
                 <tbody>
                     <%
-                    If Not rsTopBooks Is Nothing And rsTopBooks.State = 1 Then
-                        Do While Not rsTopBooks.EOF
+                    If topBookCount > 0 Then
+                        For bi = 0 To topBookCount - 1
                     %>
                     <tr>
                         <td>
-                            <strong style="color:#2c3e50; font-size:13.5px; display:block; line-height:1.3;"><%= CleanText(rsTopBooks("title") & "") %></strong>
-                            <span style="color:#7f8c8d; font-size:12px; display:block; margin-top:3px;">✍️ <%= CleanText(rsTopBooks("author_name") & "") %></span>
+                            <strong style="color:#2c3e50; font-size:13.5px; display:block; line-height:1.3;"><%= topBookTitles(bi) %></strong>
+                            <span style="color:#7f8c8d; font-size:12px; display:block; margin-top:3px;">✍️ <%= topBookAuthors(bi) %></span>
                         </td>
-                        <td style="text-align:right;" class="col-nowrap"><strong style="color:#27ae60;">&#8377;<%= FormatNumber(SafeFloat(rsTopBooks("price"), 0), 2) %></strong></td>
-                        <td style="text-align:center;" class="col-nowrap"><span class="status-pill status-pill-amber" style="font-size:12px; padding:3px 12px;">⭐ <%= rsTopBooks("borrow_count") %> Loans</span></td>
+                        <td style="text-align:right;" class="col-nowrap"><strong style="color:#27ae60;">&#8377;<%= FormatNumber(topBookPrices(bi), 2) %></strong></td>
+                        <td style="text-align:center;" class="col-nowrap"><span class="status-pill status-pill-amber" style="font-size:12px; padding:3px 12px;">⭐ <%= topBookLoans(bi) %> Loans</span></td>
                         <td style="text-align:center;" class="col-nowrap">
-                            <% If SafeInt(rsTopBooks("copies_available"), 0) > 0 Then %>
-                                <span class="status-pill status-pill-green" style="font-size:12px; padding:3px 12px;"><%= rsTopBooks("copies_available") %> Left</span>
+                            <% If topBookLeft(bi) > 0 Then %>
+                                <span class="status-pill status-pill-green" style="font-size:12px; padding:3px 12px;"><%= topBookLeft(bi) %> Left</span>
                             <% Else %>
                                 <span class="status-pill status-pill-red" style="font-size:12px; padding:3px 12px;">Out of stock</span>
                             <% End If %>
                         </td>
                     </tr>
                     <%
-                            rsTopBooks.MoveNext
-                        Loop
-                        rsTopBooks.Close
+                        Next
                     End If
                     %>
                 </tbody>
@@ -508,5 +569,120 @@ RenderHeader "Library Analytics & Inventory Intelligence"
         </table>
     </div>
 </div>
+
+<!-- Chart.js Library and Initialization -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 1. System Inventory & Status Breakdown (Pie / Doughnut Chart)
+    var ctxPie = document.getElementById('systemPieChart');
+    if (ctxPie) {
+        new Chart(ctxPie, {
+            type: 'doughnut',
+            data: {
+                labels: ['Available on Shelves', 'Active Borrowings', 'Overdue Loans', 'Returned Records'],
+                datasets: [{
+                    data: [<%= totalCopiesAvailable %>, <%= totalCurrentlyBorrowed %>, <%= totalOverdue %>, <%= totalReturned %>],
+                    backgroundColor: ['#10b981', '#f59e0b', '#ef4444', '#3b82f6'],
+                    borderWidth: 2,
+                    borderColor: '#ffffff',
+                    hoverOffset: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '58%',
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            boxWidth: 14,
+                            padding: 14,
+                            font: { family: "'Plus Jakarta Sans', sans-serif", size: 12, weight: '600' },
+                            color: '#475569'
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                var total = context.dataset.data.reduce(function(a, b) { return a + b; }, 0);
+                                var val = context.parsed;
+                                var pct = total > 0 ? Math.round((val / total) * 100) : 0;
+                                return ' ' + context.label + ': ' + val + ' (' + pct + '%)';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // 2. Category Volumes & Circulation (Bar Chart)
+    var ctxBar = document.getElementById('categoryBarChart');
+    if (ctxBar) {
+        var catLabels = [<% For ci = 0 To catCount - 1: Response.Write("""" & Replace(catNames(ci), """", "\""") & """" & IIf(ci < catCount - 1, ", ", "")): Next %>];
+        var catShelfStock = [<% For ci = 0 To catCount - 1: Response.Write(catCopies(ci) & IIf(ci < catCount - 1, ", ", "")): Next %>];
+        var catActiveLoans = [<% For ci = 0 To catCount - 1: Response.Write(catLoans(ci) & IIf(ci < catCount - 1, ", ", "")): Next %>];
+
+        new Chart(ctxBar, {
+            type: 'bar',
+            data: {
+                labels: catLabels,
+                datasets: [
+                    {
+                        label: 'Shelf Stock (Available)',
+                        data: catShelfStock,
+                        backgroundColor: '#0284c7',
+                        borderRadius: 6,
+                        maxBarThickness: 32
+                    },
+                    {
+                        label: 'Active Loans (On Loan)',
+                        data: catActiveLoans,
+                        backgroundColor: '#f59e0b',
+                        borderRadius: 6,
+                        maxBarThickness: 32
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        grid: { display: false },
+                        ticks: {
+                            font: { family: "'Plus Jakarta Sans', sans-serif", size: 11, weight: '600' },
+                            color: '#64748b'
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: '#f1f5f9' },
+                        ticks: {
+                            precision: 0,
+                            font: { family: "'Plus Jakarta Sans', sans-serif", size: 11 },
+                            color: '#64748b'
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        align: 'end',
+                        labels: {
+                            boxWidth: 12,
+                            padding: 12,
+                            font: { family: "'Plus Jakarta Sans', sans-serif", size: 12, weight: '600' },
+                            color: '#475569'
+                        }
+                    }
+                }
+            }
+        });
+    }
+});
+</script>
 
 <% RenderFooter %>

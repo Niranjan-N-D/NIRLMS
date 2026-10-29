@@ -87,12 +87,15 @@ End Function
 Function HasPermission(permName)
     If IsAdmin() Then
         HasPermission = True
+    ElseIf LCase(permName) = "categories" Then
+        ' Categories catalog browsing is accessible to all users (members & staff)
+        HasPermission = True
     Else
         Dim pKey
         pKey = "Perm_" & LCase(permName)
         If IsEmpty(Session(pKey)) Or Session(pKey) = "" Then
             ' Default permissions fallback
-            If LCase(permName) = "authors" Or LCase(permName) = "categories" Then
+            If LCase(permName) = "authors" Then
                 HasPermission = IsStaff()
             Else
                 HasPermission = True
@@ -220,7 +223,7 @@ Sub RenderHeader(pageTitle)
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><%= pageTitle %> - BEL Library System</title>
+    <title><%= pageTitle %> - Central HR Library</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -523,6 +526,9 @@ Sub RenderHeader(pageTitle)
             background: #f4f6fa;
         }
         .app-sidebar {
+            position: sticky;
+            top: 60px;
+            height: calc(100vh - 60px);
             width: 250px;
             background: #0b1320;
             border-right: 1px solid rgba(255, 255, 255, 0.08);
@@ -537,6 +543,16 @@ Sub RenderHeader(pageTitle)
             overflow-x: hidden;
             user-select: none;
             z-index: 900;
+        }
+        .app-sidebar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .app-sidebar::-webkit-scrollbar-track {
+            background: #0b1320;
+        }
+        .app-sidebar::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 4px;
         }
         .sidebar-group {
             display: flex;
@@ -683,12 +699,8 @@ Sub RenderHeader(pageTitle)
             </button>
 
             <a href="dashboard.asp" class="nav-brand">
-                <svg width="24" height="16" viewBox="0 0 52 36" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align:middle;">
-                    <path d="M0 5h34c4.5 0 8 3.5 8 8s-3.5 8-8 8H6" stroke="#0080ff" stroke-width="6.5" stroke-linecap="round"/>
-                    <path d="M0 18h38c5 0 9 4 9 9s-4 9-9 9H10" stroke="#0080ff" stroke-width="6.5" stroke-linecap="round"/>
-                    <path d="M0 31h32" stroke="#0080ff" stroke-width="6.5" stroke-linecap="round"/>
-                </svg>
-                <span>BEL Library</span>
+                <img src="images/bel_emblem_white.png" alt="BEL Emblem" style="height:22px; width:auto; vertical-align:middle; display:inline-block; object-fit:contain;">
+                <span>Central HR Library</span>
             </a>
             <span style="color:#64748b; font-size:13px; font-weight:600;" class="welcome-label">&bull; Information &amp; Resource Centre</span>
         </div>

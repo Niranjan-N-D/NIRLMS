@@ -2,14 +2,43 @@
 <%
 RequireAuth()
 
-Dim searchKeyword, conn, rs, sql
+Dim searchKeyword, categoryId, categoryName, conn, rs, sql, dbErrorMsg
 Dim avgR, revCount, starStr, availCopies, borrowedCopies, totalBookCopies
 Dim statusBadgeHtml, statusSubtextHtml
+Dim searchPlaceholder, clearSearchUrl
 
 searchKeyword = Trim(Request.QueryString("q"))
+categoryId = SafeInt(Request.QueryString("category_id"), 0)
+categoryName = ""
+dbErrorMsg = ""
 
 Set conn = GetConnection()
 
+' 1. Lookup Category Name if category_id filter provided
+If categoryId > 0 Then
+    On Error Resume Next
+    Dim rsCatCheck
+    Set rsCatCheck = conn.Execute("SELECT name FROM Categories WHERE id = " & categoryId)
+    If Err.Number = 0 Then
+        If Not (rsCatCheck Is Nothing) Then
+            If rsCatCheck.State = 1 Then
+                If Not rsCatCheck.EOF Then
+                    categoryName = rsCatCheck("name") & ""
+                End If
+                rsCatCheck.Close
+            End If
+            Set rsCatCheck = Nothing
+        End If
+    End If
+    Err.Clear
+    On Error GoTo 0
+End If
+
+If categoryId > 0 And categoryName = "" Then
+    categoryName = "Category #" & categoryId
+End If
+
+' 2. Construct Books Query
 sql = "SELECT b.id, b.title, b.isbn, b.publisher, b.price, b.copies_available, b.is_available, " & _
       "a.name AS author_name, c.name AS category_name, " & _
       "(SELECT COALESCE(AVG(rating), 0) FROM Feedbacks WHERE book_id = b.id) AS avg_rating, " & _
@@ -19,18 +48,48 @@ sql = "SELECT b.id, b.title, b.isbn, b.publisher, b.price, b.copies_available, b
       "LEFT JOIN Authors a ON b.author_id = a.id " & _
       "LEFT JOIN Categories c ON b.category_id = c.id "
 
+Dim whereParts
+whereParts = ""
+
+If categoryId > 0 Then
+    whereParts = "b.category_id = " & categoryId
+End If
+
 If searchKeyword <> "" Then
-    sql = sql & "WHERE b.title LIKE " & SQLQuote("%" & searchKeyword & "%") & _
-                " OR b.isbn LIKE " & SQLQuote("%" & searchKeyword & "%") & _
-                " OR a.name LIKE " & SQLQuote("%" & searchKeyword & "%") & _
-                " OR c.name LIKE " & SQLQuote("%" & searchKeyword & "%") & " "
+    Dim kwCond
+    kwCond = "(b.title LIKE " & SQLQuote("%" & searchKeyword & "%") & _
+             " OR b.isbn LIKE " & SQLQuote("%" & searchKeyword & "%") & _
+             " OR a.name LIKE " & SQLQuote("%" & searchKeyword & "%") & _
+             " OR c.name LIKE " & SQLQuote("%" & searchKeyword & "%") & ")"
+    If whereParts <> "" Then
+        whereParts = whereParts & " AND " & kwCond
+    Else
+        whereParts = kwCond
+    End If
+End If
+
+If whereParts <> "" Then
+    sql = sql & "WHERE " & whereParts & " "
 End If
 
 sql = sql & "ORDER BY b.id DESC"
 
 On Error Resume Next
 Set rs = conn.Execute(sql)
+If Err.Number <> 0 Then
+    dbErrorMsg = Err.Description
+    Err.Clear
+End If
 On Error GoTo 0
+
+' Determine Search Placeholders and URLs
+If categoryId > 0 Then
+    searchPlaceholder = "Search within " & categoryName & "..."
+    clearSearchUrl = "books.asp?category_id=" & categoryId
+Else
+    searchPlaceholder = "Search by title, author, category, or ISBN..."
+    clearSearchUrl = "books.asp"
+End If
 
 RenderHeader IIf(IsStaff(), "Book Catalog & Inventory", "Browse & Request Books")
 %>
@@ -100,7 +159,8 @@ RenderHeader IIf(IsStaff(), "Book Catalog & Inventory", "Browse & Request Books"
     transform: translateY(-1px);
 }
 .btn-act-review {
-    background-color: #f39c12;
+    background-color: #f1c40f;
+    color: #2c3e50 !important;
 }
 .btn-act-edit {
     background-color: #3498db;
@@ -117,19 +177,44 @@ RenderHeader IIf(IsStaff(), "Book Catalog & Inventory", "Browse & Request Books"
 </style>
 
 <div class="card">
-    <div class="card-header" style="display:flex; justify-content:space-between; align-items:center;">
+    <div class="card-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
         <h2 style="margin:0; color:#2c3e50;"><%= IIf(IsStaff(), "Book Catalog & Inventory", "Browse & Request Books") %></h2>
-        <% If IsStaff() Then %>
-            <a href="books_add.asp" class="btn btn-success">+ Add New Book</a>
-        <% End If %>
+        <div style="display:flex; gap:10px; align-items:center;">
+            <a href="categories.asp" class="btn" style="background:#f1f5f9; color:#0B1320; border:1px solid #cbd5e1; font-weight:600; text-decoration:none;">🏷️ Browse Categories</a>
+            <% If IsStaff() Then %>
+                <a href="books_add.asp" class="btn btn-success">+ Add New Book</a>
+            <% End If %>
+        </div>
     </div>
+
+    <!-- Active Category Filter Banner -->
+    <% If categoryId > 0 Then %>
+        <div style="background:#e0f2fe; border:1px solid #7dd3fc; border-radius:10px; padding:12px 18px; margin-bottom:18px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;">
+            <div style="display:flex; align-items:center; gap:12px;">
+                <span style="font-size:24px;">🏷️</span>
+                <div>
+                    <div style="font-size:12px; text-transform:uppercase; letter-spacing:0.5px; color:#0369a1; font-weight:700;">Category Filter Active</div>
+                    <div style="font-size:16px; font-weight:800; color:#0c4a6e;">
+                        <%= Server.HTMLEncode(categoryName) %>
+                    </div>
+                </div>
+            </div>
+            <div style="display:flex; align-items:center; gap:10px;">
+                <a href="categories.asp" class="btn" style="background:#0284c7; color:#fff; font-size:13px; font-weight:600; padding:6px 14px; border-radius:6px; text-decoration:none;">&larr; All Categories</a>
+                <a href="books.asp" class="btn" style="background:#fff; color:#b91c1c; border:1px solid #fca5a5; font-size:13px; font-weight:600; padding:6px 14px; border-radius:6px; text-decoration:none;">✕ Clear Filter</a>
+            </div>
+        </div>
+    <% End If %>
 
     <!-- Search Form -->
     <form action="books.asp" method="GET" style="display:flex; gap:10px; margin-bottom: 20px;">
-        <input type="text" name="q" value="<%= CleanText(searchKeyword) %>" placeholder="Search by title, author, category, or ISBN..." style="flex:1; padding:8px 12px; border:1px solid #ccc; border-radius:4px;">
+        <% If categoryId > 0 Then %>
+            <input type="hidden" name="category_id" value="<%= categoryId %>">
+        <% End If %>
+        <input type="text" name="q" value="<%= Server.HTMLEncode(searchKeyword) %>" placeholder="<%= Server.HTMLEncode(searchPlaceholder) %>" style="flex:1; padding:8px 12px; border:1px solid #ccc; border-radius:4px;">
         <button type="submit" class="btn btn-primary">Search</button>
         <% If searchKeyword <> "" Then %>
-            <a href="books.asp" class="btn btn-secondary">Clear</a>
+            <a href="<%= clearSearchUrl %>" class="btn btn-secondary">Clear Search</a>
         <% End If %>
     </form>
 
@@ -149,10 +234,28 @@ RenderHeader IIf(IsStaff(), "Book Catalog & Inventory", "Browse & Request Books"
         </thead>
         <tbody>
             <%
-            If rs Is Nothing Or rs.State = 0 Or rs.EOF Then
+            Dim hasBooks
+            hasBooks = False
+            If Not (rs Is Nothing) Then
+                If rs.State = 1 Then
+                    If Not rs.EOF Then
+                        hasBooks = True
+                    End If
+                End If
+            End If
+
+            If Not hasBooks Then
             %>
                 <tr>
-                    <td colspan="9" style="text-align:center; color:#95a5a6; padding:24px;">No books found matching your criteria.</td>
+                    <td colspan="9" style="text-align:center; color:#95a5a6; padding:24px;">
+                        <% If dbErrorMsg <> "" Then %>
+                            <span style="color:#e74c3c; font-weight:600;">Query Error: <%= Server.HTMLEncode(dbErrorMsg) %></span>
+                        <% ElseIf categoryId > 0 Then %>
+                            No books currently registered under <strong><%= Server.HTMLEncode(categoryName) %></strong>.
+                        <% Else %>
+                            No books found matching your criteria.
+                        <% End If %>
+                    </td>
                 </tr>
             <%
             Else
@@ -228,8 +331,10 @@ RenderHeader IIf(IsStaff(), "Book Catalog & Inventory", "Browse & Request Books"
                 rs.Close
             End If
 
-            conn.Close
-            Set conn = Nothing
+            If Not (conn Is Nothing) Then
+                If conn.State = 1 Then conn.Close
+                Set conn = Nothing
+            End If
             %>
         </tbody>
     </table>
