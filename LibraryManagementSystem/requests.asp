@@ -17,33 +17,48 @@ Set conn = GetConnection()
 
 ' --------------------------------------------------------------------
 ' Auto-Cleanup: Expire approved requests older than 48 hours & restore book copy
+' Throttled: runs once per session per 5 minutes (avoids repeated writes on every page load)
 ' --------------------------------------------------------------------
-' Auto-Expire Approved Requests Past 48 Hours with Transaction & Inventory Restore
-' --------------------------------------------------------------------
-On Error Resume Next
-Set rsExpired = conn.Execute("SELECT id, book_id FROM BookRequests WHERE status = 'Approved' AND approved_at IS NOT NULL AND approved_at < NOW() - INTERVAL 48 HOUR")
-If Not (rsExpired Is Nothing Or rsExpired.State = 0) Then
-    Do While Not rsExpired.EOF
-        expReqId = rsExpired("id")
-        expBookId = rsExpired("book_id")
-        
-        conn.BeginTrans
-        ' 1. Restore book inventory copy
-        conn.Execute "UPDATE Books SET copies_available = copies_available + 1, is_available = 1 WHERE id = " & expBookId
-        ' 2. Mark request as Expired
-        conn.Execute "UPDATE BookRequests SET status = 'Expired' WHERE id = " & expReqId & " AND status = 'Approved'"
-        
-        If Err.Number = 0 Then
-            conn.CommitTrans
-        Else
-            conn.RollbackTrans
-        End If
-        
-        rsExpired.MoveNext
-    Loop
-    rsExpired.Close
+Dim lastExpireCheck, shouldCheckExpire
+lastExpireCheck = Session("LastExpireCheck") & ""
+shouldCheckExpire = False
+If lastExpireCheck = "" Then
+    shouldCheckExpire = True
+ElseIf IsDate(lastExpireCheck) Then
+    If DateDiff("n", CDate(lastExpireCheck), Now) >= 5 Then
+        shouldCheckExpire = True
+    End If
+Else
+    shouldCheckExpire = True
 End If
-On Error GoTo 0
+
+If shouldCheckExpire Then
+    On Error Resume Next
+    Set rsExpired = conn.Execute("SELECT id, book_id FROM BookRequests WHERE status = 'Approved' AND approved_at IS NOT NULL AND approved_at < NOW() - INTERVAL 48 HOUR")
+    If Not (rsExpired Is Nothing Or rsExpired.State = 0) Then
+        Do While Not rsExpired.EOF
+            expReqId = rsExpired("id")
+            expBookId = rsExpired("book_id")
+            
+            conn.BeginTrans
+            ' 1. Restore book inventory copy
+            conn.Execute "UPDATE Books SET copies_available = copies_available + 1, is_available = 1 WHERE id = " & expBookId
+            ' 2. Mark request as Expired
+            conn.Execute "UPDATE BookRequests SET status = 'Expired' WHERE id = " & expReqId & " AND status = 'Approved'"
+            
+            If Err.Number = 0 Then
+                conn.CommitTrans
+            Else
+                conn.RollbackTrans
+            End If
+            
+            rsExpired.MoveNext
+        Loop
+        rsExpired.Close
+    End If
+    Session("LastExpireCheck") = CStr(Now)
+    On Error GoTo 0
+End If
 
 ' --------------------------------------------------------------------
 ' Handle Actions (Approve / Reject / Mark Collected) - Staff / Admin / Librarian
@@ -186,7 +201,7 @@ If Not IsStaff() Then
     sqlList = sqlList & "WHERE br.user_id = " & currentUserId & " "
 End If
 
-sqlList = sqlList & "ORDER BY br.id DESC"
+sqlList = sqlList & "ORDER BY br.id DESC LIMIT 150"
 
 Set rsList = conn.Execute(sqlList)
 

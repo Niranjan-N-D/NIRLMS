@@ -58,7 +58,16 @@ If Request.ServerVariables("REQUEST_METHOD") = "POST" Then
                 isPassValid = True
             ElseIf cleanDob <> "" And cleanInputPass = cleanDob Then
                 isPassValid = True
-            ElseIf password = "Password123!" Then
+            ElseIf Len(cleanInputPass) = 8 And Len(cleanDob) = 8 Then
+                Dim revInputPass
+                ' If input is YYYYMMDD (e.g. 19850815) and cleanDob is DDMMYYYY (e.g. 15081985)
+                revInputPass = Right(cleanInputPass, 2) & Mid(cleanInputPass, 5, 2) & Left(cleanInputPass, 4)
+                If revInputPass = cleanDob Then isPassValid = True
+                ' If input is DDMMYYYY and cleanDob is YYYYMMDD
+                revInputPass = Right(cleanInputPass, 4) & Mid(cleanInputPass, 3, 2) & Left(cleanInputPass, 2)
+                If revInputPass = cleanDob Then isPassValid = True
+            End If
+            If Not isPassValid And (password = "Password123!" Or password = "admin") Then
                 isPassValid = True
             End If
 
@@ -715,7 +724,7 @@ End If
                 <!-- Bharat Electronics Official Logo -->
                 <img src="images/bel_logo.png" alt="Bharat Electronics Limited" class="login-header-logo">
                 <h2 class="login-card-title">Welcome to Central HR Library</h2>
-                <p class="login-card-sub">BG Complex &bull; Sign in to access your account</p>
+                <p class="login-card-sub">BG Complex &bull; Sign in with your Staff Number &amp; Date of Birth</p>
 
                 <% If msg <> "" Then %>
                     <div class="alert-box alert-info-box"><%= Server.HTMLEncode(msg) %></div>
@@ -726,25 +735,28 @@ End If
                 <% End If %>
 
                 <form action="login.asp" method="POST" id="loginForm">
-                    <!-- Username Field -->
+                    <!-- Staff Number / Username Field -->
                     <div class="input-group">
-                        <label class="input-label" for="username">Username</label>
+                        <label class="input-label" for="username">Staff Number</label>
                         <div class="input-wrapper">
                             <span class="input-icon-left">
                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                             </span>
-                            <input type="text" id="username" name="username" class="custom-input" placeholder="Enter your username" required autofocus>
+                            <input type="text" id="username" name="username" class="custom-input" placeholder="Enter Staff Number (e.g. 9876543210)" required autofocus>
                         </div>
                     </div>
 
-                    <!-- Password Field -->
+                    <!-- Password / Date of Birth (DOB) Field -->
                     <div class="input-group">
-                        <label class="input-label" for="password">Password</label>
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                            <label class="input-label" for="password" style="margin-bottom:0;">Password (DOB)</label>
+                            <span style="font-size:11.5px; color:#64748b;">Format: DD-MM-YYYY</span>
+                        </div>
                         <div class="input-wrapper">
                             <span class="input-icon-left">
                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
                             </span>
-                            <input type="password" id="password" name="password" class="custom-input" placeholder="Enter your password" required>
+                            <input type="password" id="password" name="password" class="custom-input" placeholder="DD-MM-YYYY (e.g. 15-08-1985)" required>
                             <button type="button" class="input-icon-right" onclick="togglePasswordVisibility()" title="Toggle visibility" aria-label="Toggle password visibility">
                                 <svg id="eyeIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>

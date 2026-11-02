@@ -65,11 +65,12 @@ Dim catCount, ci
 catCount = 0
 ReDim catNames(50), catCopies(50), catLoans(50), catTitles(50)
 
-Set rsCatDist = conn.Execute("SELECT c.id, c.name, COUNT(b.id) AS title_count, " & _
+Set rsCatDist = conn.Execute("SELECT c.id, c.name, COUNT(DISTINCT b.id) AS title_count, " & _
                              "COALESCE(SUM(b.copies_available), 0) AS copies_count, " & _
-                             "(SELECT COUNT(*) FROM Borrowings br JOIN Books bk ON br.book_id = bk.id WHERE bk.category_id = c.id AND br.status IN ('Borrowed', 'Overdue')) AS active_loans " & _
+                             "COUNT(DISTINCT br.id) AS active_loans " & _
                              "FROM Categories c " & _
                              "LEFT JOIN Books b ON c.id = b.category_id AND COALESCE(b.is_deleted, 0) = 0 " & _
+                             "LEFT JOIN Borrowings br ON br.book_id = b.id AND br.status IN ('Borrowed', 'Overdue') " & _
                              "WHERE COALESCE(c.is_deleted, 0) = 0 " & _
                              "GROUP BY c.id, c.name " & _
                              "ORDER BY copies_count DESC, title_count DESC")

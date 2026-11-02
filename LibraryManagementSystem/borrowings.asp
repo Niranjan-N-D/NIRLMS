@@ -16,11 +16,27 @@ If currentFilter = "" Then currentFilter = "all"
 Set conn = GetConnection()
 
 ' --------------------------------------------------------------------
-' Auto-Update Overdue Status (Mark Overdue if CURRENT_DATE > due_date)
+' Auto-Update Overdue Status (Throttled: runs once per session per minute)
 ' --------------------------------------------------------------------
-On Error Resume Next
-conn.Execute("UPDATE Borrowings SET status = 'Overdue' WHERE status = 'Borrowed' AND due_date < CURRENT_DATE()")
-On Error GoTo 0
+Dim lastOverdueCheck, shouldCheckOverdue
+lastOverdueCheck = Session("LastOverdueCheck") & ""
+shouldCheckOverdue = False
+If lastOverdueCheck = "" Then
+    shouldCheckOverdue = True
+ElseIf IsDate(lastOverdueCheck) Then
+    If DateDiff("n", CDate(lastOverdueCheck), Now) >= 1 Then
+        shouldCheckOverdue = True
+    End If
+Else
+    shouldCheckOverdue = True
+End If
+
+If shouldCheckOverdue Then
+    On Error Resume Next
+    conn.Execute("UPDATE Borrowings SET status = 'Overdue' WHERE status = 'Borrowed' AND due_date < CURRENT_DATE()")
+    Session("LastOverdueCheck") = CStr(Now)
+    On Error GoTo 0
+End If
 
 ' Handle Form Action (Issue Book / Return Book) - Staff Only
 If Request.ServerVariables("REQUEST_METHOD") = "POST" Then
@@ -127,7 +143,7 @@ If IsStaff() Then
               "FROM Borrowings b " & _
               "LEFT JOIN Books bk ON b.book_id = bk.id " & _
               "LEFT JOIN Users u ON b.user_id = u.id " & _
-              "ORDER BY b.id DESC"
+              "ORDER BY b.id DESC LIMIT 150"
 Else
     currentUserId = SafeInt(Session("UserId"), 0)
     sqlList = "SELECT b.id, bk.title, u.username, b.borrow_date, b.due_date, b.return_date, b.status " & _
@@ -135,7 +151,7 @@ Else
               "LEFT JOIN Books bk ON b.book_id = bk.id " & _
               "LEFT JOIN Users u ON b.user_id = u.id " & _
               "WHERE b.user_id = " & currentUserId & " " & _
-              "ORDER BY b.id DESC"
+              "ORDER BY b.id DESC LIMIT 150"
 End If
 
 Set rsList = conn.Execute(sqlList)

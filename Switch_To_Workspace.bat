@@ -42,10 +42,11 @@ echo [4/4] Recycling application pool...
 echo.
 echo ====================================================================
 echo   SUCCESS! 
-echo   1. The '🚨 Filter Overdue Borrowings' button is now live!
-echo   2. You can refresh your browser at:
-echo      http://localhost:8040/borrowings.asp
+echo   1. IIS on Port 8040 is now connected directly to your workspace!
+echo   2. Launching browser to books catalog:
+echo      http://localhost:8040/books.asp
 echo ====================================================================
 echo.
+start http://localhost:8040/books.asp
 echo Press any key to close this window...
 pause >nul

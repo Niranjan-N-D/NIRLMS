@@ -35,8 +35,8 @@ If Request.ServerVariables("REQUEST_METHOD") = "POST" Then
 
     If bookId = 0 Then
         errorMessage = "Please select a valid book to request."
-    ElseIf startDateStr = "" Or endDateStr = "" Then
-        errorMessage = "Both Start Date and End Date are required."
+    ElseIf Not IsDate(startDateStr) Or Not IsDate(endDateStr) Then
+        errorMessage = "Please enter valid dates (YYYY-MM-DD or DD-MM-YYYY)."
     ElseIf CDate(endDateStr) < CDate(startDateStr) Then
         errorMessage = "End Date cannot be earlier than Start Date."
     Else

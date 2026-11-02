@@ -3,7 +3,7 @@
 ' Require Authentication
 RequireAuth()
 
-Dim conn, rs
+Dim conn, rs, rsRecent
 Set conn = GetConnection()
 
 ' Metrics Counters
@@ -20,51 +20,47 @@ myPendingRequests = 0
 
 On Error Resume Next
 
-' Total Catalog Books
-Set rs = conn.Execute("SELECT COUNT(*) AS total FROM Books WHERE COALESCE(is_deleted, 0) = 0")
-If Not rs.EOF Then totalBooks = rs("total")
-rs.Close
-
-' Total Feedbacks
-Set rs = conn.Execute("SELECT COUNT(*) AS total FROM Feedbacks")
-If Not rs.EOF Then totalFeedbacks = rs("total")
-rs.Close
-
-' Total Kannada Books
-Set rs = conn.Execute("SELECT COUNT(*) AS total FROM Books b LEFT JOIN Categories c ON b.category_id = c.id WHERE (c.name LIKE '%Kannada%' OR c.name LIKE '%ಕನ್ನಡ%') AND COALESCE(b.is_deleted, 0) = 0")
-If Not rs.EOF Then kannadaBooks = rs("total")
+' ---- OPTIMIZED: Single combined metrics query (replaces 4 separate queries) ----
+Set rs = conn.Execute("SELECT " & _
+    "(SELECT COUNT(*) FROM Books WHERE COALESCE(is_deleted, 0) = 0) AS totalBooks, " & _
+    "(SELECT COUNT(*) FROM Feedbacks) AS totalFeedbacks, " & _
+    "(SELECT COUNT(*) FROM Books b LEFT JOIN Categories c ON b.category_id = c.id WHERE (c.name LIKE '%Kannada%' OR c.name LIKE '%ಕನ್ನಡ%') AND COALESCE(b.is_deleted, 0) = 0) AS kannadaBooks")
+If Not rs.EOF Then
+    totalBooks = SafeInt(rs("totalBooks"), 0)
+    totalFeedbacks = SafeInt(rs("totalFeedbacks"), 0)
+    kannadaBooks = SafeInt(rs("kannadaBooks"), 0)
+End If
 rs.Close
 
 If IsStaff() Then
-    ' Staff (Admin & Librarian) Counters
-    Set rs = conn.Execute("SELECT COUNT(*) AS total FROM Borrowings WHERE status IN ('Borrowed', 'Overdue')")
-    If Not rs.EOF Then activeBorrowings = rs("total")
-    rs.Close
-
-    Set rs = conn.Execute("SELECT COUNT(*) AS total FROM BookRequests WHERE status = 'Pending'")
-    If Not rs.EOF Then pendingRequests = rs("total")
-    rs.Close
-
-    Set rs = conn.Execute("SELECT COUNT(*) AS total FROM Users WHERE COALESCE(is_deleted, 0) = 0")
-    If Not rs.EOF Then totalUsers = rs("total")
-    rs.Close
-
+    ' ---- OPTIMIZED: Single combined staff metrics query (replaces 4 separate queries) ----
     Dim totalCopiesAvailable
     totalCopiesAvailable = 0
-    Set rs = conn.Execute("SELECT COALESCE(SUM(copies_available), 0) AS total FROM Books WHERE COALESCE(is_deleted, 0) = 0")
-    If Not rs.EOF Then totalCopiesAvailable = SafeInt(rs("total"), 0)
+    Set rs = conn.Execute("SELECT " & _
+        "(SELECT COUNT(*) FROM Borrowings WHERE status IN ('Borrowed', 'Overdue')) AS activeBorrowings, " & _
+        "(SELECT COUNT(*) FROM BookRequests WHERE status = 'Pending') AS pendingRequests, " & _
+        "(SELECT COUNT(*) FROM Users WHERE COALESCE(is_deleted, 0) = 0) AS totalUsers, " & _
+        "(SELECT COALESCE(SUM(copies_available), 0) FROM Books WHERE COALESCE(is_deleted, 0) = 0) AS totalCopies")
+    If Not rs.EOF Then
+        activeBorrowings = SafeInt(rs("activeBorrowings"), 0)
+        pendingRequests = SafeInt(rs("pendingRequests"), 0)
+        totalUsers = SafeInt(rs("totalUsers"), 0)
+        totalCopiesAvailable = SafeInt(rs("totalCopies"), 0)
+    End If
     rs.Close
 
     ' Category breakdown for System Overview Bar Chart
+    ' ---- OPTIMIZED: Correlated subquery replaced with LEFT JOIN aggregate ----
     Dim rsDashCat, dashCatCount, dci
     dashCatCount = 0
     Dim dCatNames(), dCatCopies(), dCatLoans()
     ReDim dCatNames(20), dCatCopies(20), dCatLoans(20)
 
     Set rsDashCat = conn.Execute("SELECT c.name, COALESCE(SUM(b.copies_available), 0) AS copies, " & _
-                                 "(SELECT COUNT(*) FROM Borrowings br JOIN Books bk ON br.book_id = bk.id WHERE bk.category_id = c.id AND br.status IN ('Borrowed', 'Overdue')) AS loans " & _
+                                 "COUNT(DISTINCT br.id) AS loans " & _
                                  "FROM Categories c " & _
                                  "LEFT JOIN Books b ON c.id = b.category_id AND COALESCE(b.is_deleted, 0) = 0 " & _
+                                 "LEFT JOIN Borrowings br ON br.book_id = b.id AND br.status IN ('Borrowed', 'Overdue') " & _
                                  "WHERE COALESCE(c.is_deleted, 0) = 0 " & _
                                  "GROUP BY c.id, c.name ORDER BY copies DESC LIMIT 6")
     If Not rsDashCat Is Nothing And rsDashCat.State = 1 Then
@@ -79,19 +75,19 @@ If IsStaff() Then
     End If
 
     ' Staff Recent Activity Query
-    Dim rsRecent
     Set rsRecent = conn.Execute("SELECT b.id, bk.title, u.username, b.borrow_date, b.due_date, b.status FROM Borrowings b LEFT JOIN Books bk ON b.book_id = bk.id LEFT JOIN Users u ON b.user_id = u.id ORDER BY b.borrow_date DESC LIMIT 5")
 Else
-    ' Staff User Counters (Filtered to Session UserId)
+    ' ---- OPTIMIZED: Single combined member metrics query (replaces 2 separate queries) ----
     Dim currentUserId
     currentUserId = SafeInt(Session("UserId"), 0)
 
-    Set rs = conn.Execute("SELECT COUNT(*) AS total FROM Borrowings WHERE user_id = " & currentUserId & " AND status IN ('Borrowed', 'Overdue')")
-    If Not rs.EOF Then myActiveBorrowings = rs("total")
-    rs.Close
-
-    Set rs = conn.Execute("SELECT COUNT(*) AS total FROM BookRequests WHERE user_id = " & currentUserId & " AND status = 'Pending'")
-    If Not rs.EOF Then myPendingRequests = rs("total")
+    Set rs = conn.Execute("SELECT " & _
+        "(SELECT COUNT(*) FROM Borrowings WHERE user_id = " & currentUserId & " AND status IN ('Borrowed', 'Overdue')) AS myBorrowings, " & _
+        "(SELECT COUNT(*) FROM BookRequests WHERE user_id = " & currentUserId & " AND status = 'Pending') AS myRequests")
+    If Not rs.EOF Then
+        myActiveBorrowings = SafeInt(rs("myBorrowings"), 0)
+        myPendingRequests = SafeInt(rs("myRequests"), 0)
+    End If
     rs.Close
 
     ' Staff User Recent Activity Query
