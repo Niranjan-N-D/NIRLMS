@@ -90,7 +90,7 @@ Set rsFeedbacks = conn.Execute("SELECT f.id, f.feedback_type, f.rating, f.commen
 RenderHeader "Feedback & Reviews"
 %>
 
-<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+<div class="feedback-layout-grid">
     <!-- Left Column: Submit Review / Feedback Form -->
     <div class="card" style="margin-bottom:0;">
         <h2 style="margin-top:0; color:#2c3e50;">✍️ Submit Feedback or Book Review</h2>

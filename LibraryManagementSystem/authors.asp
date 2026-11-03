@@ -59,7 +59,7 @@ Set rsAuthors = conn.Execute("SELECT id, name, bio FROM Authors WHERE COALESCE(i
 RenderHeader "Authors Management"
 %>
 
-<div style="display:grid; grid-template-columns: 1fr 2fr; gap:24px;">
+<div class="authors-layout-grid">
     <!-- Add Author Form -->
     <div class="card">
         <h3 style="margin-top:0; color:#2c3e50;">Add Author</h3>
@@ -93,6 +93,7 @@ RenderHeader "Authors Management"
     <div class="card">
         <h3 style="margin-top:0; color:#2c3e50;">Author Directory</h3>
 
+        <div class="table-responsive">
         <table>
             <thead>
                 <tr>
@@ -138,6 +139,7 @@ RenderHeader "Authors Management"
                 %>
             </tbody>
         </table>
+        </div>
     </div>
 </div>
 

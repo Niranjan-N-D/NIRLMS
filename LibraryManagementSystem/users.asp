@@ -186,7 +186,7 @@ RenderHeader "Staff & User Management"
     </div>
 <% End If %>
 
-<div style="display:grid; grid-template-columns: 340px 1fr; gap:24px; align-items:start;">
+<div class="users-layout-grid">
     <!-- Add User Form -->
     <div class="card" style="box-shadow:0 2px 10px rgba(0,0,0,0.06); padding:22px;">
         <h3 style="margin-top:0; color:#2c3e50; border-bottom:2px solid #3498db; padding-bottom:8px;">
@@ -277,6 +277,7 @@ RenderHeader "Staff & User Management"
             <input type="text" id="userSearch" placeholder="🔍 Filter users..." onkeyup="filterUsers()" style="padding:6px 12px; border:1px solid #ccc; border-radius:4px; font-size:13px; width:220px;">
         </div>
 
+        <div class="table-responsive">
         <table id="usersTable" style="width:100%; border-collapse:collapse;">
             <thead>
                 <tr style="background:#f8f9fa;">
@@ -370,6 +371,7 @@ RenderHeader "Staff & User Management"
                 %>
             </tbody>
         </table>
+        </div>
     </div>
 </div>
 

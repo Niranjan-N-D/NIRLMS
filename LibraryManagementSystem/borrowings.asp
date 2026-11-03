@@ -299,7 +299,7 @@ RenderHeader IIf(IsStaff(), "Book Borrowing Management", "My Borrowed Books")
             <div class="alert alert-info"><%= CleanText(successMessage) %></div>
         <% End If %>
 
-        <form action="borrowings.asp" method="POST" onsubmit="return validateIssueForm(event);" style="display:grid; grid-template-columns: 2.2fr 2.2fr 1fr 1.1fr; gap:16px; align-items:end;">
+        <form action="borrowings.asp" method="POST" onsubmit="return validateIssueForm(event);" class="issue-form-grid">
             <input type="hidden" name="action_type" value="issue">
 
             <!-- Searchable Book Selector -->
@@ -436,7 +436,8 @@ RenderHeader IIf(IsStaff(), "Book Borrowing Management", "My Borrowed Books")
         </div>
     </div>
 
-    <table id="borrowingsTable">
+    <div class="table-responsive">
+        <table id="borrowingsTable">
         <thead>
             <tr>
                 <th>ID</th>
@@ -558,6 +559,7 @@ RenderHeader IIf(IsStaff(), "Book Borrowing Management", "My Borrowed Books")
             %>
         </tbody>
     </table>
+    </div>
 
     <div id="noMatchRow" style="display:none; text-align:center; padding:30px; color:#95a5a6; font-size:14.5px;">
         <span style="font-size:24px;">🔍</span><br>

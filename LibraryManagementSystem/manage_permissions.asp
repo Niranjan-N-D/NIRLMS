@@ -77,6 +77,7 @@ RenderHeader "Manage Permissions"
     <% End If %>
 
     <form action="manage_permissions.asp" method="POST">
+        <div class="table-responsive">
         <table>
             <thead>
                 <tr>
@@ -152,6 +153,7 @@ RenderHeader "Manage Permissions"
                 %>
             </tbody>
         </table>
+        </div>
 
         <div style="margin-top:20px; text-align:right;">
             <button type="submit" class="btn btn-success" style="padding:10px 24px; font-size:16px;">💾 Save Permission Changes</button>
