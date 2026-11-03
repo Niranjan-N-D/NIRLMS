@@ -609,7 +609,7 @@ RenderHeader "Library Analytics & Inventory Intelligence"
 </div>
 
 <!-- Chart.js Library and Initialization -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="js/chart.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // 1. System Inventory & Status Breakdown (Pie / Doughnut Chart)

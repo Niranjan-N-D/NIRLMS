@@ -3,7 +3,7 @@
    Extracted from db_config.asp for performance optimization
    ==================================================================== */
 
-* { box-sizing: border-box; font-family: 'Plus Jakarta Sans', 'Segoe UI', Arial, 'Noto Sans Kannada', sans-serif; }
+* { box-sizing: border-box; font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, 'Helvetica Neue', Arial, 'Noto Sans Kannada', sans-serif; }
 body { margin: 0; padding: 0; background-color: #f4f6fa; color: #1e293b; min-height: 100vh; }
 
 /* Modern Single-Line Aligned Navigation Bar */

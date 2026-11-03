@@ -435,7 +435,7 @@ Set conn = Nothing
 
 <% If IsStaff() Then %>
 <!-- Chart.js Library and Dashboard Charts Initialization -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="js/chart.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // 1. System Overview Pie Chart

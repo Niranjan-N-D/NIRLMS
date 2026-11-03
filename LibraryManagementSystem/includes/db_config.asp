@@ -37,7 +37,7 @@ Function GetConnection()
     Set conn = Server.CreateObject("ADODB.Connection")
 
     dbDriver = "{MySQL ODBC 5.1 Driver}"
-    dbServer = "localhost"
+    dbServer = "127.0.0.1"
     dbPort   = "3306"
     dbName   = "librarydb1"
     dbUser   = "root"
@@ -49,7 +49,14 @@ Function GetConnection()
     On Error Resume Next
     conn.Open connStr
 
-    ' Seamless local fallback if 5.1 driver is not registered on this specific development machine
+    ' Fallback 1: MySQL ODBC 8.0 Unicode Driver (frequently installed on modern Windows Server)
+    If Err.Number <> 0 Then
+        Err.Clear
+        connStr = "DRIVER={MySQL ODBC 8.0 Unicode Driver};SERVER=" & dbServer & ";PORT=" & dbPort & ";DATABASE=" & dbName & ";USER=" & dbUser & ";PASSWORD=" & dbPass & ";OPTION=3;STMT=SET NAMES utf8;"
+        conn.Open connStr
+    End If
+
+    ' Fallback 2: MySQL ODBC 26.7 Unicode Driver / MariaDB
     If Err.Number <> 0 Then
         Err.Clear
         connStr = "DRIVER={MySQL ODBC 26.7 Unicode Driver};SERVER=" & dbServer & ";PORT=" & dbPort & ";DATABASE=" & dbName & ";USER=" & dbUser & ";PASSWORD=" & dbPass & ";OPTION=3;STMT=SET NAMES utf8;"
@@ -236,9 +243,6 @@ Sub RenderHeader(pageTitle)
     <link rel="icon" type="image/png" sizes="32x32" href="images/bel_favicon_32.png">
     <link rel="icon" type="image/png" sizes="64x64" href="images/bel_favicon.png">
     <link rel="shortcut icon" href="images/bel_favicon.png">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
 
 </head>

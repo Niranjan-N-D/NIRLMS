@@ -123,15 +123,12 @@ End If
     <link rel="icon" type="image/png" sizes="32x32" href="images/bel_favicon_32.png">
     <link rel="icon" type="image/png" sizes="64x64" href="images/bel_favicon.png">
     <link rel="shortcut icon" href="images/bel_favicon.png">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, 'Noto Sans Kannada', sans-serif;
         }
         body {
             background-color: #f1f5f9;
