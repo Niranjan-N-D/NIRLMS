@@ -317,21 +317,17 @@ RenderHeader IIf(IsStaff(), "Book Borrowing Management", "My Borrowed Books")
                     <div class="searchable-dropdown-list" id="bookDropdown">
                         <%
                         If Not rsBooks Is Nothing And rsBooks.State = 1 Then
+                            Dim bId, bTitle, bIsbn
                             Do While Not rsBooks.EOF
+                                bId = rsBooks("id")
+                                bTitle = CleanText(rsBooks("title") & "")
                                 bAuthor = CleanText(rsBooks("author_name") & "")
+                                bIsbn = CleanText(rsBooks("isbn") & "")
                                 bCopies = rsBooks("copies_available")
-                        %>
-                            <div class="searchable-item" 
-                                 data-id="<%= rsBooks("id") %>" 
-                                 data-title="<%= CleanText(rsBooks("title") & "") %>" 
-                                 data-search="<%= LCase(CleanText(rsBooks("title") & " " & bAuthor & " " & rsBooks("isbn"))) %>">
-                                <div>
-                                    <div class="searchable-item-primary"><%= CleanText(rsBooks("title") & "") %></div>
-                                    <div class="searchable-item-sub"><%= bAuthor %> &bull; ISBN: <%= CleanText(rsBooks("isbn") & "") %></div>
-                                </div>
-                                <span class="searchable-item-badge badge-stock"><%= bCopies %> left</span>
-                            </div>
-                        <%
+                                Response.Write "<div class=""searchable-item"" data-id=""" & bId & """ data-title=""" & bTitle & """ data-search=""" & LCase(bTitle & " " & bAuthor & " " & bIsbn) & """>"
+                                Response.Write "<div><div class=""searchable-item-primary"">" & bTitle & "</div>"
+                                Response.Write "<div class=""searchable-item-sub"">" & bAuthor & " &bull; ISBN: " & bIsbn & "</div></div>"
+                                Response.Write "<span class=""searchable-item-badge badge-stock"">" & bCopies & " left</span></div>"
                                 rsBooks.MoveNext
                             Loop
                         End If

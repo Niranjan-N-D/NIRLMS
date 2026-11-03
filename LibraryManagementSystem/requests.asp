@@ -34,28 +34,8 @@ End If
 
 If shouldCheckExpire Then
     On Error Resume Next
-    Set rsExpired = conn.Execute("SELECT id, book_id FROM BookRequests WHERE status = 'Approved' AND approved_at IS NOT NULL AND approved_at < NOW() - INTERVAL 48 HOUR")
-    If Not (rsExpired Is Nothing Or rsExpired.State = 0) Then
-        Do While Not rsExpired.EOF
-            expReqId = rsExpired("id")
-            expBookId = rsExpired("book_id")
-            
-            conn.BeginTrans
-            ' 1. Restore book inventory copy
-            conn.Execute "UPDATE Books SET copies_available = copies_available + 1, is_available = 1 WHERE id = " & expBookId
-            ' 2. Mark request as Expired
-            conn.Execute "UPDATE BookRequests SET status = 'Expired' WHERE id = " & expReqId & " AND status = 'Approved'"
-            
-            If Err.Number = 0 Then
-                conn.CommitTrans
-            Else
-                conn.RollbackTrans
-            End If
-            
-            rsExpired.MoveNext
-        Loop
-        rsExpired.Close
-    End If
+    conn.Execute("UPDATE Books b JOIN BookRequests r ON b.id = r.book_id SET b.copies_available = b.copies_available + 1, b.is_available = 1 WHERE r.status = 'Approved' AND r.approved_at IS NOT NULL AND r.approved_at < NOW() - INTERVAL 48 HOUR")
+    conn.Execute("UPDATE BookRequests SET status = 'Expired' WHERE status = 'Approved' AND approved_at IS NOT NULL AND approved_at < NOW() - INTERVAL 48 HOUR")
     Session("LastExpireCheck") = CStr(Now)
     On Error GoTo 0
 End If

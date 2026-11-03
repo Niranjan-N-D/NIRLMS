@@ -33,42 +33,44 @@ End Function
 ' Optimized for MySQL ODBC 5.1 Driver as specified for deployment
 ' --------------------------------------------------------------------
 Function GetConnection()
-    Dim conn, connStr, dbDriver, dbServer, dbPort, dbName, dbUser, dbPass
+    Dim conn, connStr, dbDrivers, dbNames, dbServer, dbPort, dbUser, dbPass
+    Dim dIdx, nIdx, isConnected
     Set conn = Server.CreateObject("ADODB.Connection")
 
-    dbDriver = "{MySQL ODBC 5.1 Driver}"
+    conn.ConnectionTimeout = 5
+    conn.CommandTimeout = 30
+
     dbServer = "127.0.0.1"
     dbPort   = "3306"
-    dbName   = "librarydb1"
     dbUser   = "root"
     dbPass   = ""
 
-    ' Connection string with UTF-8 support and ODBC connection pooling (OPTION=3)
-    connStr = "DRIVER=" & dbDriver & ";SERVER=" & dbServer & ";PORT=" & dbPort & ";DATABASE=" & dbName & ";USER=" & dbUser & ";PASSWORD=" & dbPass & ";OPTION=3;STMT=SET NAMES utf8;"
+    ' Drivers in order of priority (32-bit & 64-bit IIS support on Windows Server)
+    dbDrivers = Array("{MySQL ODBC 5.1 Driver}", "{MySQL ODBC 8.0 Unicode Driver}", "{MySQL ODBC 8.0 ANSI Driver}", "{MySQL ODBC 26.7 Unicode Driver}", "{MariaDB ODBC 3.1 Driver}", "{MariaDB ODBC 3.0 Driver}")
+    dbNames   = Array("librarydb1", "librarydb")
 
+    isConnected = False
     On Error Resume Next
-    conn.Open connStr
+    For dIdx = 0 To UBound(dbDrivers)
+        For nIdx = 0 To UBound(dbNames)
+            Err.Clear
+            If conn.State = 1 Then conn.Close
+            connStr = "DRIVER=" & dbDrivers(dIdx) & ";SERVER=" & dbServer & ";PORT=" & dbPort & ";DATABASE=" & dbNames(nIdx) & ";USER=" & dbUser & ";PASSWORD=" & dbPass & ";OPTION=3;STMT=SET NAMES utf8;"
+            conn.Open connStr
+            If Err.Number = 0 And conn.State = 1 Then
+                isConnected = True
+                Exit For
+            End If
+        Next
+        If isConnected Then Exit For
+    Next
 
-    ' Fallback 1: MySQL ODBC 8.0 Unicode Driver (frequently installed on modern Windows Server)
-    If Err.Number <> 0 Then
-        Err.Clear
-        connStr = "DRIVER={MySQL ODBC 8.0 Unicode Driver};SERVER=" & dbServer & ";PORT=" & dbPort & ";DATABASE=" & dbName & ";USER=" & dbUser & ";PASSWORD=" & dbPass & ";OPTION=3;STMT=SET NAMES utf8;"
-        conn.Open connStr
-    End If
-
-    ' Fallback 2: MySQL ODBC 26.7 Unicode Driver / MariaDB
-    If Err.Number <> 0 Then
-        Err.Clear
-        connStr = "DRIVER={MySQL ODBC 26.7 Unicode Driver};SERVER=" & dbServer & ";PORT=" & dbPort & ";DATABASE=" & dbName & ";USER=" & dbUser & ";PASSWORD=" & dbPass & ";OPTION=3;STMT=SET NAMES utf8;"
-        conn.Open connStr
-    End If
-
-    If Err.Number <> 0 Then
+    If Not isConnected Or Err.Number <> 0 Then
         Response.Write("<div style='color:red;font-family:sans-serif;'>")
         Response.Write("<h3>Database Connection Error</h3>")
         Response.Write("<p>" & Err.Description & "</p>")
-        Response.Write("<p>Primary Driver: <code>" & dbDriver & "</code> on <code>" & dbServer & ":" & dbPort & "</code></p>")
-        Response.Write("<p>Please verify MySQL service is running and driver is registered.</p>")
+        Response.Write("<p>Server: <code>" & dbServer & ":" & dbPort & "</code></p>")
+        Response.Write("<p>Please verify MySQL service is running and ODBC driver is registered.</p>")
         Response.Write("</div>")
         Response.End
     End If
